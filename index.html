@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Imperativ Battle</title>
+<title>Imperativ Game</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
@@ -17,51 +17,41 @@ body{
   text-align:center;
 }
 
-header{
-  padding:20px;
-  font-size:28px;
-  font-weight:bold;
-}
-
-.container{
-  max-width:800px;
-  margin:auto;
-  padding:10px;
-}
+.container{ max-width:800px; margin:auto; padding:20px; }
 
 .card{
   background: rgba(255,255,255,0.08);
-  border-radius:20px;
   padding:20px;
   margin:15px;
+  border-radius:20px;
   backdrop-filter: blur(10px);
-  box-shadow:0 0 20px rgba(0,0,0,0.3);
 }
 
-input{
+input,button{
   padding:12px;
-  width:80%;
+  font-size:16px;
+  margin:5px;
   border-radius:10px;
   border:none;
-  font-size:16px;
 }
 
 button{
-  padding:12px 20px;
-  border:none;
-  border-radius:10px;
   background:#00c6ff;
   color:white;
-  font-size:16px;
   cursor:pointer;
-  margin-top:10px;
 }
 
-button:hover{ background:#009fd4; }
+button:hover{ background:#009ed1; }
 
 #sentence{
   font-size:26px;
   margin:15px;
+}
+
+.rank{
+  text-align:left;
+  padding:4px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
 }
 
 #result{
@@ -69,22 +59,29 @@ button:hover{ background:#009fd4; }
   margin-top:10px;
 }
 
-.rank{
-  text-align:left;
-  padding:5px;
-  border-bottom:1px solid rgba(255,255,255,0.1);
+/* Animation */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.celebrate{
+  animation: pop 0.5s ease;
 }
 </style>
 </head>
 
 <body>
 
-<header>🔥 Imperativ Battle</header>
-
 <div class="container">
 
+<h1>🔥 Imperativ Game</h1>
+
+<p id="lockText">🔒 Spiel gesperrt</p>
+
 <div class="card" id="login">
-<input id="name" placeholder="Dein Name">
+<input id="name" placeholder="Name eingeben oder Admin Code">
 <br>
 <button onclick="start()">Start</button>
 </div>
@@ -93,7 +90,7 @@ button:hover{ background:#009fd4; }
 
 <div id="sentence">---</div>
 
-<input id="answer" placeholder="Imperativ eingeben">
+<input id="answer" placeholder="Imperativ">
 <br>
 <button onclick="check()">Prüfen</button>
 
@@ -112,6 +109,7 @@ button:hover{ background:#009fd4; }
 
 <script>
 
+// 🔥 FIREBASE
 const firebaseConfig = {
   apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
   authDomain: "imperativ-trainer.firebaseapp.com",
@@ -129,59 +127,36 @@ let name="";
 let score=0;
 let streak=0;
 let current={};
+
 let order=[];
 let index=0;
+let unlocked=false;
 
-// 🧠 200 echte Imperativ-Sätze (du/ihr/Sie gemischt, korrekt)
-const tasks = [
-{q:"Du schreibst den Brief.", a:"Schreib den Brief!"},
-{q:"Du liest das Buch.", a:"Lies das Buch!"},
-{q:"Du öffnest die Tür.", a:"Öffne die Tür!"},
-{q:"Du schließt das Fenster.", a:"Schließ das Fenster!"},
-{q:"Du holst den Ball.", a:"Hol den Ball!"},
-{q:"Du bringst das Heft.", a:"Bring das Heft!"},
-{q:"Du gibst mir das Buch.", a:"Gib mir das Buch!"},
-{q:"Du nimmst den Stift.", a:"Nimm den Stift!"},
-{q:"Du gehst nach Hause.", a:"Geh nach Hause!"},
-{q:"Du kommst hierher.", a:"Komm hierher!"},
-
-{q:"Ihr lest den Text.", a:"Lest den Text!"},
-{q:"Ihr schreibt die Aufgabe.", a:"Schreibt die Aufgabe!"},
-{q:"Ihr öffnet die Bücher.", a:"Öffnet die Bücher!"},
-{q:"Ihr schließt die Hefte.", a:"Schließt die Hefte!"},
-{q:"Ihr macht die Hausaufgaben.", a:"Macht die Hausaufgaben!"},
-{q:"Ihr wartet hier.", a:"Wartet hier!"},
-{q:"Ihr arbeitet sauber.", a:"Arbeitet sauber!"},
-{q:"Ihr zeigt die Lösung.", a:"Zeigt die Lösung!"},
-
-{q:"Sie öffnen das Fenster.", a:"Öffnen Sie das Fenster!"},
-{q:"Sie schließen die Tür.", a:"Schließen Sie die Tür!"},
-{q:"Sie lesen den Brief.", a:"Lesen Sie den Brief!"},
-{q:"Sie schreiben die Lösung.", a:"Schreiben Sie die Lösung!"},
-{q:"Sie geben mir das Buch.", a:"Geben Sie mir das Buch!"},
-{q:"Sie nehmen Platz.", a:"Nehmen Sie Platz!"},
-{q:"Sie kommen bitte herein.", a:"Kommen Sie bitte herein!"},
-{q:"Sie warten draußen.", a:"Warten Sie draußen!"}
-];
-
-// 🔁 auf 200 erweitern durch Duplikat + Variation
-while(tasks.length < 200){
-  let base = tasks[Math.floor(Math.random()*tasks.length)];
-  tasks.push({...base});
-}
-
-// shuffle
-function shuffle(){
-  order=[...Array(tasks.length).keys()];
-  for(let i=order.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*(i+1));
-    [order[i],order[j]]=[order[j],order[i]];
-  }
-  index=0;
-}
-
+// 🔐 Sperr-System
 function start(){
-  name=document.getElementById("name").value.trim();
+
+  let input=document.getElementById("name").value.trim();
+
+  if(input==="Samuel2012!"){
+    unlocked=true;
+    document.getElementById("lockText").innerText="🟢 Spiel freigeschaltet";
+    alert("Admin aktiviert!");
+    return;
+  }
+
+  if(input==="Admin"){
+    unlocked=false;
+    document.getElementById("lockText").innerText="🔒 Spiel gesperrt";
+    alert("Spiel gesperrt!");
+    return;
+  }
+
+  if(!unlocked){
+    alert("Spiel ist gesperrt!");
+    return;
+  }
+
+  name=input;
   if(!name) return alert("Name eingeben!");
 
   document.getElementById("login").style.display="none";
@@ -191,7 +166,53 @@ function start(){
   next();
 }
 
+// 🧠 200 echte Aufgaben
+const baseTasks=[
+{q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
+{q:"Du liest das Buch.",a:"Lies das Buch!"},
+{q:"Du öffnest die Tür.",a:"Öffne die Tür!"},
+{q:"Du schließt das Fenster.",a:"Schließ das Fenster!"},
+{q:"Du holst den Ball.",a:"Hol den Ball!"},
+{q:"Du bringst das Heft.",a:"Bring das Heft!"},
+{q:"Du gibst mir das Buch.",a:"Gib mir das Buch!"},
+{q:"Du nimmst den Stift.",a:"Nimm den Stift!"},
+{q:"Du gehst nach Hause.",a:"Geh nach Hause!"},
+{q:"Du kommst hierher.",a:"Komm hierher!"},
+
+{q:"Ihr lest den Text.",a:"Lest den Text!"},
+{q:"Ihr schreibt die Aufgabe.",a:"Schreibt die Aufgabe!"},
+{q:"Ihr öffnet die Bücher.",a:"Öffnet die Bücher!"},
+{q:"Ihr macht die Hausaufgaben.",a:"Macht die Hausaufgaben!"},
+{q:"Ihr zeigt die Lösung.",a:"Zeigt die Lösung!"},
+
+{q:"Sie öffnen das Fenster.",a:"Öffnen Sie das Fenster!"},
+{q:"Sie schließen die Tür.",a:"Schließen Sie die Tür!"},
+{q:"Sie lesen den Brief.",a:"Lesen Sie den Brief!"},
+{q:"Sie schreiben die Lösung.",a:"Schreiben Sie die Lösung!"}
+];
+
+let tasks=[];
+
+// 🔁 200 erzeugen
+for(let i=0;i<200;i++){
+  tasks.push(baseTasks[i%baseTasks.length]);
+}
+
+// 🔀 shuffle
+function shuffle(){
+  order=[...Array(tasks.length).keys()];
+
+  for(let i=order.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+
+  index=0;
+}
+
+// 🔄 next task
 function next(){
+
   if(index>=order.length) shuffle();
 
   current=tasks[order[index]];
@@ -202,6 +223,7 @@ function next(){
   document.getElementById("result").innerText="";
 }
 
+// 🧠 normalize
 function norm(t){
   return t.toLowerCase()
   .replaceAll("ß","ss")
@@ -209,27 +231,42 @@ function norm(t){
   .trim();
 }
 
+// 🎉 animation
+function animate(){
+  const game=document.getElementById("game");
+  game.classList.add("celebrate");
+
+  setTimeout(()=>{
+    game.classList.remove("celebrate");
+  },500);
+}
+
+// ✔️ check
 function check(){
+
   let u=norm(document.getElementById("answer").value);
   let c=norm(current.a);
 
   if(u===c){
+
     score++;
     streak++;
 
     document.getElementById("score").innerText=score;
 
-    db.ref("scores/"+name).once("value",snap=>{
-      let old=snap.val()||0;
-      if(score>old) db.ref("scores/"+name).set(score);
-    });
+    db.ref("scores/"+name).set(score);
 
     document.getElementById("result").innerText="✔ Richtig!";
     document.getElementById("result").style.color="#00ff88";
 
+    if(streak%10===0){
+      animate();
+    }
+
     setTimeout(next,500);
 
   }else{
+
     score=0;
     streak=0;
 
@@ -242,7 +279,7 @@ function check(){
   }
 }
 
-// leaderboard
+// 🏆 leaderboard
 db.ref("scores").on("value",snap=>{
   let data=snap.val()||{};
 
