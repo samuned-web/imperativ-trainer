@@ -1,0 +1,73 @@
+
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Imperativ Trainer</title>
+<style>
+body { font-family: Arial; text-align:center; margin-top:60px; }
+.box { max-width:500px; margin:auto; padding:20px; border:2px solid #ccc; border-radius:10px; }
+input { padding:10px; width:80%; }
+button { padding:10px; margin-top:10px; }
+#result { font-weight:bold; margin-top:15px; }
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>Imperativ Trainer</h2>
+
+<p id="sentence"></p>
+
+<input id="answer" placeholder="Dein Imperativ">
+<br>
+<button onclick="check()">Prüfen</button>
+<button onclick="newTask()">Neue Aufgabe</button>
+
+<p id="result"></p>
+</div>
+
+<script>
+const verbs = [
+  {inf:"machen", du:"mach", ihr:"macht", sie:"machen Sie"},
+  {inf:"gehen", du:"geh", ihr:"geht", sie:"gehen Sie"},
+  {inf:"lesen", du:"lies", ihr:"lest", sie:"lesen Sie"},
+  {inf:"öffnen", du:"öffne", ihr:"öffnet", sie:"öffnen Sie"},
+  {inf:"holen", du:"hol", ihr:"holt", sie:"holen Sie"}
+];
+
+let correct = "";
+
+function newTask() {
+  const v = verbs[Math.floor(Math.random() * verbs.length)];
+  const s = ["du","ihr","Sie"][Math.floor(Math.random() * 3)];
+
+  document.getElementById("sentence").innerText =
+    s.toUpperCase() + ": " + v.inf + " das Buch!";
+
+  if (s === "du") correct = v.du;
+  else if (s === "ihr") correct = v.ihr;
+  else correct = v.sie;
+
+  document.getElementById("answer").value = "";
+  document.getElementById("result").innerText = "";
+}
+
+function check() {
+  const u = document.getElementById("answer").value.trim().toLowerCase();
+
+  if (u === correct.toLowerCase()) {
+    document.getElementById("result").innerText = "✔ Richtig!";
+    document.getElementById("result").style.color = "green";
+  } else {
+    document.getElementById("result").innerText = "✘ Falsch → " + correct;
+    document.getElementById("result").style.color = "red";
+  }
+}
+
+newTask();
+</script>
+
+</body>
+</html>
