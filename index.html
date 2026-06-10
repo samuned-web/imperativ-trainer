@@ -59,7 +59,6 @@ button:hover{ background:#009ed1; }
   margin-top:10px;
 }
 
-/* Animation */
 @keyframes pop {
   0% { transform: scale(1); }
   50% { transform: scale(1.2); }
@@ -81,7 +80,7 @@ button:hover{ background:#009ed1; }
 <p id="lockText">🔒 Spiel gesperrt</p>
 
 <div class="card" id="login">
-<input id="name" placeholder="Name eingeben oder Admin Code">
+<input id="name" placeholder="Gebe deinen Namen ein">
 <br>
 <button onclick="start()">Start</button>
 </div>
@@ -90,7 +89,7 @@ button:hover{ background:#009ed1; }
 
 <div id="sentence">---</div>
 
-<input id="answer" placeholder="Imperativ">
+<input id="answer" placeholder="Imperativ eingeben">
 <br>
 <button onclick="check()">Prüfen</button>
 
@@ -109,7 +108,7 @@ button:hover{ background:#009ed1; }
 
 <script>
 
-// 🔥 FIREBASE
+// 🔥 Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
   authDomain: "imperativ-trainer.firebaseapp.com",
@@ -123,41 +122,43 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let name="";
-let score=0;
-let streak=0;
-let current={};
+let name = "";
+let score = 0;
+let streak = 0;
+let current = {};
+let order = [];
+let index = 0;
+let unlocked = false;
 
-let order=[];
-let index=0;
-let unlocked=false;
-
-// 🔐 Sperr-System
+// 🔓 LOCK LOGIK
 function start(){
 
-  let input=document.getElementById("name").value.trim();
+  let input = document.getElementById("name").value.trim();
 
-  if(input==="Samuel2012!"){
-    unlocked=true;
-    document.getElementById("lockText").innerText="🟢 Spiel freigeschaltet";
+  // Admin freischalten
+  if(input === "Samuel2012!"){
+    unlocked = true;
+    document.getElementById("lockText").innerText = "🟢 Spiel freigeschaltet";
     alert("Admin aktiviert!");
     return;
   }
 
-  if(input==="Admin"){
-    unlocked=false;
-    document.getElementById("lockText").innerText="🔒 Spiel gesperrt";
+  // Sperren
+  if(input === "Admin"){
+    unlocked = false;
+    document.getElementById("lockText").innerText = "🔒 Spiel gesperrt";
     alert("Spiel gesperrt!");
     return;
   }
 
+  // block wenn gesperrt
   if(!unlocked){
     alert("Spiel ist gesperrt!");
     return;
   }
 
-  name=input;
-  if(!name) return alert("Name eingeben!");
+  name = input;
+  if(!name) return alert("Gebe deinen Namen ein");
 
   document.getElementById("login").style.display="none";
   document.getElementById("game").style.display="block";
@@ -166,8 +167,8 @@ function start(){
   next();
 }
 
-// 🧠 200 echte Aufgaben
-const baseTasks=[
+// 🧠 200 Aufgaben
+const baseTasks = [
 {q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
 {q:"Du liest das Buch.",a:"Lies das Buch!"},
 {q:"Du öffnest die Tür.",a:"Öffne die Tür!"},
@@ -192,8 +193,6 @@ const baseTasks=[
 ];
 
 let tasks=[];
-
-// 🔁 200 erzeugen
 for(let i=0;i<200;i++){
   tasks.push(baseTasks[i%baseTasks.length]);
 }
@@ -201,18 +200,15 @@ for(let i=0;i<200;i++){
 // 🔀 shuffle
 function shuffle(){
   order=[...Array(tasks.length).keys()];
-
   for(let i=order.length-1;i>0;i--){
     let j=Math.floor(Math.random()*(i+1));
     [order[i],order[j]]=[order[j],order[i]];
   }
-
   index=0;
 }
 
-// 🔄 next task
+// 🔄 next
 function next(){
-
   if(index>=order.length) shuffle();
 
   current=tasks[order[index]];
