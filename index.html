@@ -57,6 +57,7 @@ button{
 </style>
 
 </head>
+
 <body>
 
 <div class="container">
@@ -65,46 +66,43 @@ button{
 
 <!-- LOGIN -->
 <div id="login" class="card">
-<h2>Gib deinen Namen ein</h2>
+<h2>Name eingeben</h2>
 <input id="name" placeholder="Name">
 <br>
 <button onclick="startGame()">Start</button>
 </div>
 
-<!-- SPIEL -->
+<!-- GAME -->
 <div id="game" class="card" style="display:none;">
 
-<h2 id="sentence">Lade...</h2>
+<h2 id="sentence">...</h2>
 
-<div class="timer">
-⏱️ Zeit: <span id="time">45</span>s
-</div>
+<div class="timer">⏱️ <span id="time">45</span>s</div>
 
-<input id="answer" placeholder="Schreibe den Imperativ">
+<input id="answer" placeholder="Imperativ">
 
 <br>
 <button onclick="check()">Prüfen</button>
 
 <p id="result"></p>
 
-<h3>🏆 Punkte: <span id="score">0</span></h3>
-<h3>🔥 Serie: <span id="streak">0</span></h3>
+<h3>🔥 Aktuelle Serie: <span id="streak">0</span></h3>
 
 </div>
 
-<!-- RANGLISTE -->
+<!-- LEADERBOARD -->
 <div class="card">
-<h2>🏆 Rangliste</h2>
-<div id="leaderboard"></div>
+<h2>🏆 Bestleistungen</h2>
+<div id="board"></div>
 </div>
 
 </div>
 
 <script>
 
-/* =======================
-   AUFGABEN (DEINE LISTE)
-   ======================= */
+/* ======================
+   AUFGABEN
+====================== */
 
 const tasks = [
 {q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
@@ -305,14 +303,13 @@ const tasks = [
 {q:"Sie fragen nach.",a:"Fragen Sie nach!"}
 ];
 
-/* =======================
+/* ======================
    VARIABLEN
-   ======================= */
+====================== */
 
-let playerName = "";
-let score = 0;
+let player = "";
+let current = null;
 let streak = 0;
-let currentTask = null;
 
 let shuffled = [];
 let index = 0;
@@ -320,16 +317,16 @@ let index = 0;
 let time = 45;
 let timer = null;
 
-/* =======================
-   START
-   ======================= */
+/* ======================
+   START / LOGIN
+====================== */
 
 function startGame(){
 
-    playerName = document.getElementById("name").value.trim();
+    player = document.getElementById("name").value.trim();
 
-    if(!playerName){
-        alert("Name eingeben!");
+    if(!player){
+        alert("Name fehlt");
         return;
     }
 
@@ -341,62 +338,67 @@ function startGame(){
     nextTask();
 }
 
-/* =======================
+/* ======================
    SHUFFLE
-   ======================= */
+====================== */
 
-function shuffle(array){
-    let arr = [...array];
-    for(let i=arr.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [arr[i],arr[j]]=[arr[j],arr[i]];
+function shuffle(arr){
+    let a = [...arr];
+    for(let i=a.length-1;i>0;i--){
+        let j = Math.floor(Math.random()*(i+1));
+        [a[i],a[j]]=[a[j],a[i]];
     }
-    return arr;
+    return a;
 }
 
-/* =======================
+/* ======================
    ROUND
-   ======================= */
+====================== */
 
 function startRound(){
     shuffled = shuffle(tasks);
     index = 0;
 }
 
-/* =======================
+/* ======================
    TIMER
-   ======================= */
+====================== */
 
 function startTimer(){
     clearInterval(timer);
     time = 45;
+
     document.getElementById("time").innerText = time;
 
     timer = setInterval(()=>{
+
         time--;
         document.getElementById("time").innerText = time;
 
         if(time <= 0){
             clearInterval(timer);
-            failTime();
+            fail();
         }
+
     },1000);
 }
 
-function failTime(){
+function fail(){
+
     streak = 0;
 
     document.getElementById("result").innerHTML =
-        "⏰ Zeit abgelaufen!<br><b>"+currentTask.a+"</b>";
+        "⏰ Zeit vorbei!<br><b>"+current.a+"</b>";
 
     updateUI();
+    updateBoard();
 
     setTimeout(nextTask,1200);
 }
 
-/* =======================
+/* ======================
    NEXT TASK
-   ======================= */
+====================== */
 
 function nextTask(){
 
@@ -404,21 +406,21 @@ function nextTask(){
         startRound();
     }
 
-    currentTask = shuffled[index];
+    current = shuffled[index];
     index++;
 
-    document.getElementById("sentence").innerText = currentTask.q;
+    document.getElementById("sentence").innerText = current.q;
     document.getElementById("answer").value = "";
     document.getElementById("answer").focus();
 
     startTimer();
 }
 
-/* =======================
+/* ======================
    NORMALIZE
-   ======================= */
+====================== */
 
-function normalize(t){
+function norm(t){
     return t.toLowerCase()
         .replace(/ß/g,"ss")
         .replace(/[.!?,]/g,"")
@@ -426,79 +428,76 @@ function normalize(t){
         .trim();
 }
 
-/* =======================
+/* ======================
    CHECK
-   ======================= */
+====================== */
 
 function check(){
 
     clearInterval(timer);
 
-    const user =
-        normalize(document.getElementById("answer").value);
-
-    const correct =
-        normalize(currentTask.a);
+    let user = norm(document.getElementById("answer").value);
+    let correct = norm(current.a);
 
     if(user === correct){
 
-        score++;
         streak++;
 
         document.getElementById("result").innerHTML =
             "✅ Richtig";
 
-        saveScore();
-
     }else{
 
-        streak = 0;
-
         document.getElementById("result").innerHTML =
-            "❌ Falsch<br><b>"+currentTask.a+"</b>";
+            "❌ Falsch<br><b>"+current.a+"</b>";
+
+        saveBest();   // <<< wichtig
+        streak = 0;
     }
 
     updateUI();
+    updateBoard();
 
     setTimeout(nextTask,1200);
 }
 
-/* =======================
-   UI UPDATE
-   ======================= */
+/* ======================
+   UI
+====================== */
 
 function updateUI(){
-
-    document.getElementById("score").innerText = score;
     document.getElementById("streak").innerText = streak;
-
-    updateBoard();
 }
 
-/* =======================
-   RANGLISTE
-   ======================= */
+/* ======================
+   BEST SCORE SYSTEM
+====================== */
 
-function saveScore(){
+function saveBest(){
 
     let data =
-        JSON.parse(localStorage.getItem("board")) || {};
+        JSON.parse(localStorage.getItem("imperativ_best")) || {};
 
-    if(!data[playerName]){
-        data[playerName] = 0;
+    if(!data[player]){
+        data[player] = 0;
     }
 
-    data[playerName] += score;
+    // nur BESTE Serie speichern
+    if(streak > data[player]){
+        data[player] = streak;
+    }
 
-    localStorage.setItem("board",JSON.stringify(data));
-
-    score = 0;
+    localStorage.setItem("imperativ_best",JSON.stringify(data));
 }
+
+/* ======================
+   RANGLISTE
+====================== */
 
 function updateBoard(){
 
     let data =
-        JSON.parse(localStorage.getItem("board")) || {};
+        JSON.parse(localStorage.getItem("imperativ_best")) || {};
 
     let sorted =
         Object.entries(data)
@@ -506,21 +505,20 @@ function updateBoard(){
 
     let html = "";
 
-    for(let [name,points] of sorted){
-        html += `<div>${name}: ${points}</div>`;
+    for(let [name,score] of sorted){
+        html += `<div>${name}: ${score} 🔥</div>`;
     }
 
-    document.getElementById("leaderboard").innerHTML =
+    document.getElementById("board").innerHTML =
         html || "Noch keine Spieler";
 }
 
-/* =======================
-   ENTER KEY
-   ======================= */
+/* ======================
+   ENTER
+====================== */
 
 document.addEventListener("keydown",e=>{
-    if(e.key==="Enter" &&
-    document.getElementById("game").style.display!=="none"){
+    if(e.key==="Enter" && document.getElementById("game").style.display!=="none"){
         check();
     }
 });
