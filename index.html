@@ -46,12 +46,13 @@ button{
     margin:20px;
 }
 
-.correct{
-    color:lime;
-}
+.correct{ color:lime; }
+.wrong{ color:#ff5555; }
 
-.wrong{
-    color:#ff5555;
+.timer{
+    font-size:26px;
+    margin-top:10px;
+    color:yellow;
 }
 </style>
 
@@ -64,61 +65,48 @@ button{
 
 <!-- LOGIN -->
 <div id="login" class="card">
-
-<h2>Gebe deinen Namen ein</h2>
-
+<h2>Gib deinen Namen ein</h2>
 <input id="name" placeholder="Name">
-
 <br>
-
-<button onclick="startGame()">
-Start
-</button>
-
+<button onclick="startGame()">Start</button>
 </div>
 
 <!-- SPIEL -->
 <div id="game" class="card" style="display:none;">
 
-<h2 id="sentence">
-Lade...
-</h2>
+<h2 id="sentence">Lade...</h2>
 
-<input
-id="answer"
-placeholder="Schreibe den Imperativ">
+<div class="timer">
+⏱️ Zeit: <span id="time">45</span>s
+</div>
+
+<input id="answer" placeholder="Schreibe den Imperativ">
 
 <br>
-
-<button onclick="check()">
-Prüfen
-</button>
+<button onclick="check()">Prüfen</button>
 
 <p id="result"></p>
 
-<h3>
-🏆 Punkte:
-<span id="score">0</span>
-</h3>
+<h3>🏆 Punkte: <span id="score">0</span></h3>
+<h3>🔥 Serie: <span id="streak">0</span></h3>
 
-<h3>
-🔥 Serie:
-<span id="streak">0</span>
-</h3>
+</div>
 
+<!-- RANGLISTE -->
+<div class="card">
+<h2>🏆 Rangliste</h2>
+<div id="leaderboard"></div>
 </div>
 
 </div>
 
 <script>
 
-/* =======================================
-   HIER DEINE 180 AUFGABEN EINFÜGEN
-   ======================================= */
+/* =======================
+   AUFGABEN (DEINE LISTE)
+   ======================= */
 
 const tasks = [
-
-/* HIER DIE KOMPLETTE LISTE EINFÜGEN */
 {q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
 {q:"Du liest das Buch.",a:"Lies das Buch!"},
 {q:"Du gibst mir den Stift.",a:"Gib mir den Stift!"},
@@ -315,175 +303,227 @@ const tasks = [
 {q:"Sie denken nach.",a:"Denken Sie nach!"},
 {q:"Sie antworten sofort.",a:"Antworten Sie sofort!"},
 {q:"Sie fragen nach.",a:"Fragen Sie nach!"}
-
 ];
 
-/* =======================================
-   AB HIER NICHTS ÄNDERN
-   ======================================= */
+/* =======================
+   VARIABLEN
+   ======================= */
 
+let playerName = "";
 let score = 0;
 let streak = 0;
-
 let currentTask = null;
 
-let shuffledTasks = [];
-let currentIndex = 0;
+let shuffled = [];
+let index = 0;
+
+let time = 45;
+let timer = null;
+
+/* =======================
+   START
+   ======================= */
 
 function startGame(){
 
-    const name =
-        document.getElementById("name").value.trim();
+    playerName = document.getElementById("name").value.trim();
 
-    if(!name){
-
-        alert("Bitte Namen eingeben");
+    if(!playerName){
+        alert("Name eingeben!");
         return;
     }
 
-    document.getElementById("login").style.display =
-        "none";
+    document.getElementById("login").style.display = "none";
+    document.getElementById("game").style.display = "block";
 
-    document.getElementById("game").style.display =
-        "block";
-
+    updateBoard();
     startRound();
     nextTask();
 }
 
+/* =======================
+   SHUFFLE
+   ======================= */
+
 function shuffle(array){
-
     let arr = [...array];
-
-    for(let i = arr.length - 1; i > 0; i--){
-
-        const j =
-            Math.floor(Math.random() * (i + 1));
-
-        [arr[i], arr[j]] =
-            [arr[j], arr[i]];
+    for(let i=arr.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [arr[i],arr[j]]=[arr[j],arr[i]];
     }
-
     return arr;
 }
 
+/* =======================
+   ROUND
+   ======================= */
+
 function startRound(){
-
-    shuffledTasks =
-        shuffle(tasks);
-
-    currentIndex = 0;
+    shuffled = shuffle(tasks);
+    index = 0;
 }
+
+/* =======================
+   TIMER
+   ======================= */
+
+function startTimer(){
+    clearInterval(timer);
+    time = 45;
+    document.getElementById("time").innerText = time;
+
+    timer = setInterval(()=>{
+        time--;
+        document.getElementById("time").innerText = time;
+
+        if(time <= 0){
+            clearInterval(timer);
+            failTime();
+        }
+    },1000);
+}
+
+function failTime(){
+    streak = 0;
+
+    document.getElementById("result").innerHTML =
+        "⏰ Zeit abgelaufen!<br><b>"+currentTask.a+"</b>";
+
+    updateUI();
+
+    setTimeout(nextTask,1200);
+}
+
+/* =======================
+   NEXT TASK
+   ======================= */
 
 function nextTask(){
 
-    if(currentIndex >= shuffledTasks.length){
-
+    if(index >= shuffled.length){
         startRound();
     }
 
-    currentTask =
-        shuffledTasks[currentIndex];
+    currentTask = shuffled[index];
+    index++;
 
-    currentIndex++;
-
-    document.getElementById("sentence")
-        .innerText =
-        currentTask.q;
-
+    document.getElementById("sentence").innerText = currentTask.q;
     document.getElementById("answer").value = "";
-
     document.getElementById("answer").focus();
+
+    startTimer();
 }
 
-function normalize(text){
+/* =======================
+   NORMALIZE
+   ======================= */
 
-    return text
-        .toLowerCase()
+function normalize(t){
+    return t.toLowerCase()
         .replace(/ß/g,"ss")
         .replace(/[.!?,]/g,"")
         .replace(/\s+/g," ")
         .trim();
 }
 
-function celebrate(){
-
-    const messages = [
-
-        "🎉 Super!",
-        "🔥 Stark!",
-        "🏆 Klasse!",
-        "⭐ Perfekt!",
-        "🚀 Mega!"
-    ];
-
-    document.getElementById("result")
-        .innerHTML =
-        messages[
-            Math.floor(
-                Math.random()*messages.length
-            )
-        ];
-}
+/* =======================
+   CHECK
+   ======================= */
 
 function check(){
 
-    const userAnswer =
-        normalize(
-            document.getElementById("answer").value
-        );
+    clearInterval(timer);
 
-    const correctAnswer =
+    const user =
+        normalize(document.getElementById("answer").value);
+
+    const correct =
         normalize(currentTask.a);
 
-    const result =
-        document.getElementById("result");
-
-    if(userAnswer === correctAnswer){
+    if(user === correct){
 
         score++;
         streak++;
 
-        result.className = "correct";
-        result.innerHTML = "✅ Richtig";
+        document.getElementById("result").innerHTML =
+            "✅ Richtig";
 
-        if(streak % 10 === 0){
-
-            celebrate();
-        }
+        saveScore();
 
     }else{
 
         streak = 0;
 
-        result.className = "wrong";
-        result.innerHTML =
-            "❌ Falsch<br><br>Richtig wäre:<br><b>" +
-            currentTask.a +
-            "</b>";
+        document.getElementById("result").innerHTML =
+            "❌ Falsch<br><b>"+currentTask.a+"</b>";
     }
 
-    document.getElementById("score")
-        .innerText = score;
-
-    document.getElementById("streak")
-        .innerText = streak;
+    updateUI();
 
     setTimeout(nextTask,1200);
 }
 
-document.addEventListener(
-    "keydown",
-    function(e){
+/* =======================
+   UI UPDATE
+   ======================= */
 
-        if(
-            e.key === "Enter" &&
-            document.getElementById("game").style.display !== "none"
-        ){
-            check();
-        }
+function updateUI(){
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("streak").innerText = streak;
+
+    updateBoard();
+}
+
+/* =======================
+   RANGLISTE
+   ======================= */
+
+function saveScore(){
+
+    let data =
+        JSON.parse(localStorage.getItem("board")) || {};
+
+    if(!data[playerName]){
+        data[playerName] = 0;
     }
-);
+
+    data[playerName] += score;
+
+    localStorage.setItem("board",JSON.stringify(data));
+
+    score = 0;
+}
+
+function updateBoard(){
+
+    let data =
+        JSON.parse(localStorage.getItem("board")) || {};
+
+    let sorted =
+        Object.entries(data)
+        .sort((a,b)=>b[1]-a[1]);
+
+    let html = "";
+
+    for(let [name,points] of sorted){
+        html += `<div>${name}: ${points}</div>`;
+    }
+
+    document.getElementById("leaderboard").innerHTML =
+        html || "Noch keine Spieler";
+}
+
+/* =======================
+   ENTER KEY
+   ======================= */
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="Enter" &&
+    document.getElementById("game").style.display!=="none"){
+        check();
+    }
+});
 
 </script>
 
