@@ -2,198 +2,124 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Imperativ Trainer</title>
+<title>Imperativ Multiplayer</title>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <style>
-body{
-    font-family:Arial,sans-serif;
-    text-align:center;
-    margin:20px;
-}
-
-.box{
-    max-width:700px;
-    margin:auto;
-    padding:20px;
-    border:2px solid #ccc;
-    border-radius:10px;
-}
-
-#sentence{
-    font-size:24px;
-    margin:20px;
-}
-
-input{
-    width:90%;
-    padding:10px;
-    font-size:18px;
-}
-
-button{
-    padding:10px 20px;
-    margin:10px;
-    font-size:16px;
-}
-
-#result{
-    font-weight:bold;
-    font-size:20px;
-    margin-top:15px;
-}
+body { font-family: Arial; text-align:center; margin:20px; }
+.box { max-width:600px; margin:auto; }
+input, button { padding:10px; margin:5px; font-size:16px; }
+#sentence { font-size:22px; margin:20px; }
+#board { margin-top:20px; text-align:left; }
 </style>
 </head>
+
 <body>
 
 <div class="box">
 
-<h1>Imperativ Trainer</h1>
+<h2>🔥 Imperativ Multiplayer</h2>
 
-<p><b>Aktuelle Serie:</b> <span id="streak">0</span></p>
-<p><b>Tagesrekord:</b> <span id="record">0</span></p>
+<input id="name" placeholder="Dein Name">
+<button onclick="start()">Start</button>
 
-<div id="sentence"></div>
+<hr>
 
-<input id="answer" placeholder="Schreibe den Satz im Imperativ">
+<div id="game" style="display:none;">
 
-<br>
+<p id="sentence"></p>
 
-<button onclick="checkAnswer()">Prüfen</button>
+<input id="answer" placeholder="Satz im Imperativ">
+<button onclick="check()">Prüfen</button>
 
-<div id="result"></div>
+<p>Punkte: <span id="score">0</span></p>
+
+<h3>🏆 Rangliste</h3>
+<div id="board"></div>
+
+<p id="top"></p>
+
+</div>
 
 </div>
 
 <script>
+// 🔥 DEINE FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
+  authDomain: "imperativ-trainer.firebaseapp.com",
+  databaseURL: "https://imperativ-trainer-default-rtdb.firebaseio.com",
+  projectId: "imperativ-trainer",
+  storageBucket: "imperativ-trainer.firebasestorage.app",
+  messagingSenderId: "1007314946383",
+  appId: "1:1007314946383:web:ff2d6a8891a68570e39d3a"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let name = "";
+let score = 0;
+let current = {};
 
 const tasks = [
-
-{
-satz:"Du schreibst den Brief.",
-antwort:"Schreib den Brief!"
-},
-
-{
-satz:"Ihr lest das Buch.",
-antwort:"Lest das Buch!"
-},
-
-{
-satz:"Sie öffnen das Fenster.",
-antwort:"Öffnen Sie das Fenster!"
-},
-
-{
-satz:"Du gehst nach Hause.",
-antwort:"Geh nach Hause!"
-},
-
-{
-satz:"Ihr macht die Hausaufgaben.",
-antwort:"Macht die Hausaufgaben!"
-},
-
-{
-satz:"Sie schließen die Tür.",
-antwort:"Schließen Sie die Tür!"
-},
-
-{
-satz:"Du holst den Ball.",
-antwort:"Hol den Ball!"
-},
-
-{
-satz:"Ihr schreibt die Lösung.",
-antwort:"Schreibt die Lösung!"
-},
-
-{
-satz:"Sie lesen die Zeitung.",
-antwort:"Lesen Sie die Zeitung!"
-},
-
-{
-satz:"Du grüßt deinen Nachbarn.",
-antwort:"Grüß deinen Nachbarn!"
-}
-
+  {q:"Du schreibst den Brief.", a:"Schreib den Brief!"},
+  {q:"Ihr lest das Buch.", a:"Lest das Buch!"},
+  {q:"Sie öffnen die Tür.", a:"Öffnen Sie die Tür!"},
+  {q:"Du gehst nach Hause.", a:"Geh nach Hause!"},
+  {q:"Ihr macht die Hausaufgaben.", a:"Macht die Hausaufgaben!"},
+  {q:"Sie schließen das Fenster.", a:"Schließen Sie das Fenster!"}
 ];
 
-let currentTask;
-let streak = 0;
-let record = 0;
+function start(){
+  name = document.getElementById("name").value.trim();
+  if(!name) return alert("Name eingeben!");
 
-function normalize(text){
-
-return text
-.toLowerCase()
-.replaceAll("ß","ss")
-.replace(/[.!?,]/g,"")
-.replace(/\s+/g," ")
-.trim();
-
+  document.getElementById("game").style.display = "block";
+  newTask();
 }
 
 function newTask(){
-
-currentTask =
-tasks[Math.floor(Math.random()*tasks.length)];
-
-document.getElementById("sentence").innerText =
-currentTask.satz;
-
-document.getElementById("answer").value="";
-
+  current = tasks[Math.floor(Math.random()*tasks.length)];
+  document.getElementById("sentence").innerText = current.q;
 }
 
-function checkAnswer(){
+function check(){
+  let ans = document.getElementById("answer").value.trim().toLowerCase();
 
-const user =
-normalize(document.getElementById("answer").value);
+  if(ans === current.a.toLowerCase()){
+    score++;
+    document.getElementById("score").innerText = score;
 
-const correct =
-normalize(currentTask.antwort);
+    db.ref("scores/"+name).set(score);
 
-if(user === correct){
+    newTask();
+  }
 
-streak++;
-
-if(streak > record){
-record = streak;
+  document.getElementById("answer").value = "";
 }
 
-document.getElementById("result").innerHTML =
-"✅ Richtig";
+// 🔥 LIVE RANGLISTE
+db.ref("scores").on("value", snap=>{
+  let data = snap.val() || {};
+  let html = "";
 
-document.getElementById("result").style.color =
-"green";
+  let best = {name:"-", score:0};
 
-}else{
+  for(let n in data){
+    html += `<div>${n}: ${data[n]}</div>`;
 
-document.getElementById("result").innerHTML =
-"❌ Falsch<br>Richtig wäre:<br>" +
-currentTask.antwort;
+    if(data[n] > best.score){
+      best = {name:n, score:data[n]};
+    }
+  }
 
-document.getElementById("result").style.color =
-"red";
-
-streak = 0;
-}
-
-document.getElementById("streak").innerText =
-streak;
-
-document.getElementById("record").innerText =
-record;
-
-setTimeout(newTask,2000);
-
-}
-
-newTask();
-
+  document.getElementById("board").innerHTML = html;
+  document.getElementById("top").innerText =
+    "🥇 Aktuell #1: " + best.name + " (" + best.score + ")";
+});
 </script>
 
 </body>
