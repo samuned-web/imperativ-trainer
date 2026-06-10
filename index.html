@@ -77,7 +77,7 @@ button:hover{ background:#009ed1; }
 
 <h1>🔥 Imperativ Game</h1>
 
-<p id="lockText">🔒 Spiel gesperrt</p>
+<p id="lockText">🔒 Status wird geladen...</p>
 
 <div class="card" id="login">
 <input id="name" placeholder="Gebe deinen Namen ein">
@@ -122,42 +122,54 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-let name = "";
-let score = 0;
-let streak = 0;
-let current = {};
-let order = [];
-let index = 0;
-let unlocked = false;
+let name="";
+let score=0;
+let streak=0;
+let current={};
 
-// 🔓 LOCK LOGIK
+let order=[];
+let index=0;
+
+// 💾 LOCK STATUS (bleibt gespeichert)
+let unlocked = localStorage.getItem("unlocked")==="true";
+
+updateLockText();
+
+function updateLockText(){
+  document.getElementById("lockText").innerText =
+    unlocked ? "🟢 Spiel freigeschaltet" : "🔒 Spiel gesperrt";
+}
+
+// 🔐 START / ADMIN SYSTEM
 function start(){
 
-  let input = document.getElementById("name").value.trim();
+  let input=document.getElementById("name").value.trim();
 
-  // Admin freischalten
-  if(input === "Samuel2012!"){
-    unlocked = true;
-    document.getElementById("lockText").innerText = "🟢 Spiel freigeschaltet";
+  // 🔓 Admin freischalten
+  if(input==="Samuel2012!"){
+    unlocked=true;
+    localStorage.setItem("unlocked","true");
+    updateLockText();
     alert("Admin aktiviert!");
     return;
   }
 
-  // Sperren
-  if(input === "Admin"){
-    unlocked = false;
-    document.getElementById("lockText").innerText = "🔒 Spiel gesperrt";
+  // 🔒 Sperren
+  if(input==="Admin"){
+    unlocked=false;
+    localStorage.setItem("unlocked","false");
+    updateLockText();
     alert("Spiel gesperrt!");
     return;
   }
 
-  // block wenn gesperrt
+  // 🚫 block wenn gesperrt
   if(!unlocked){
     alert("Spiel ist gesperrt!");
     return;
   }
 
-  name = input;
+  name=input;
   if(!name) return alert("Gebe deinen Namen ein");
 
   document.getElementById("login").style.display="none";
@@ -168,7 +180,7 @@ function start(){
 }
 
 // 🧠 200 Aufgaben
-const baseTasks = [
+const baseTasks=[
 {q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
 {q:"Du liest das Buch.",a:"Lies das Buch!"},
 {q:"Du öffnest die Tür.",a:"Öffne die Tür!"},
@@ -231,10 +243,7 @@ function norm(t){
 function animate(){
   const game=document.getElementById("game");
   game.classList.add("celebrate");
-
-  setTimeout(()=>{
-    game.classList.remove("celebrate");
-  },500);
+  setTimeout(()=>game.classList.remove("celebrate"),500);
 }
 
 // ✔️ check
@@ -296,4 +305,4 @@ db.ref("scores").on("value",snap=>{
 </script>
 
 </body>
-</html>
+</html>#
