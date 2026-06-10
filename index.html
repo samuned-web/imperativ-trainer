@@ -1,308 +1,376 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Imperativ Game</title>
+const tasks = [
+{q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
+{q:"Du liest das Buch.",a:"Lies das Buch!"},
+{q:"Du gibst mir den Stift.",a:"Gib mir den Stift!"},
+{q:"Du nimmst die Tasche mit.",a:"Nimm die Tasche mit!"},
+{q:"Du isst dein Frühstück.",a:"Iss dein Frühstück!"},
+{q:"Du fährst mit dem Velo zur Schule.",a:"Fahr mit dem Velo zur Schule!"},
+{q:"Du läufst schneller.",a:"Lauf schneller!"},
+{q:"Du sprichst deutlich.",a:"Sprich deutlich!"},
+{q:"Du hilfst deinem Freund.",a:"Hilf deinem Freund!"},
+{q:"Du wirfst den Ball.",a:"Wirf den Ball!"},
+{q:"Du räumst dein Zimmer auf.",a:"Räum dein Zimmer auf!"},
+{q:"Du machst die Hausaufgaben.",a:"Mach die Hausaufgaben!"},
+{q:"Du öffnest das Fenster.",a:"Öffne das Fenster!"},
+{q:"Du schließt die Tür.",a:"Schließ die Tür!"},
+{q:"Du packst deinen Rucksack.",a:"Pack deinen Rucksack!"},
+{q:"Du bringst das Heft mit.",a:"Bring das Heft mit!"},
+{q:"Du holst die Post.",a:"Hol die Post!"},
+{q:"Du hebst das Papier auf.",a:"Heb das Papier auf!"},
+{q:"Du schaltest den Computer ein.",a:"Schalte den Computer ein!"},
+{q:"Du machst das Licht aus.",a:"Mach das Licht aus!"},
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+{q:"Du stellst das Glas auf den Tisch.",a:"Stell das Glas auf den Tisch!"},
+{q:"Du ziehst die Jacke an.",a:"Zieh die Jacke an!"},
+{q:"Du ziehst die Schuhe aus.",a:"Zieh die Schuhe aus!"},
+{q:"Du rufst deine Mutter an.",a:"Ruf deine Mutter an!"},
+{q:"Du vergisst die Hausaufgaben nicht.",a:"Vergiss die Hausaufgaben nicht!"},
+{q:"Du schläfst früh ein.",a:"Schlaf früh ein!"},
+{q:"Du triffst deinen Freund.",a:"Triff deinen Freund!"},
+{q:"Du siehst genau hin.",a:"Sieh genau hin!"},
+{q:"Du hältst die Tür offen.",a:"Halte die Tür offen!"},
+{q:"Du lässt den Hund herein.",a:"Lass den Hund herein!"},
 
-<style>
-body{
-  margin:0;
-  font-family: Arial;
-  background: radial-gradient(circle at top,#1e3c72,#0f172a);
-  color:white;
-  text-align:center;
-}
+{q:"Ihr schreibt den Brief.",a:"Schreibt den Brief!"},
+{q:"Ihr lest das Buch.",a:"Lest das Buch!"},
+{q:"Ihr gebt mir den Stift.",a:"Gebt mir den Stift!"},
+{q:"Ihr nehmt die Tasche mit.",a:"Nehmt die Tasche mit!"},
+{q:"Ihr esst euer Frühstück.",a:"Esst euer Frühstück!"},
+{q:"Ihr fahrt mit dem Bus.",a:"Fahrt mit dem Bus!"},
+{q:"Ihr lauft schneller.",a:"Lauft schneller!"},
+{q:"Ihr sprecht deutlich.",a:"Sprecht deutlich!"},
+{q:"Ihr helft euren Freunden.",a:"Helft euren Freunden!"},
+{q:"Ihr werft den Ball.",a:"Werft den Ball!"},
 
-.container{ max-width:800px; margin:auto; padding:20px; }
+{q:"Ihr räumt das Zimmer auf.",a:"Räumt das Zimmer auf!"},
+{q:"Ihr macht die Hausaufgaben.",a:"Macht die Hausaufgaben!"},
+{q:"Ihr öffnet das Fenster.",a:"Öffnet das Fenster!"},
+{q:"Ihr schließt die Tür.",a:"Schließt die Tür!"},
+{q:"Ihr packt eure Rucksäcke.",a:"Packt eure Rucksäcke!"},
+{q:"Ihr bringt das Heft mit.",a:"Bringt das Heft mit!"},
+{q:"Ihr holt die Post.",a:"Holt die Post!"},
+{q:"Ihr hebt das Papier auf.",a:"Hebt das Papier auf!"},
+{q:"Ihr schaltet den Computer ein.",a:"Schaltet den Computer ein!"},
+{q:"Ihr macht das Licht aus.",a:"Macht das Licht aus!"},
 
-.card{
-  background: rgba(255,255,255,0.08);
-  padding:20px;
-  margin:15px;
-  border-radius:20px;
-  backdrop-filter: blur(10px);
-}
+{q:"Ihr stellt die Gläser auf den Tisch.",a:"Stellt die Gläser auf den Tisch!"},
+{q:"Ihr zieht die Jacken an.",a:"Zieht die Jacken an!"},
+{q:"Ihr zieht die Schuhe aus.",a:"Zieht die Schuhe aus!"},
+{q:"Ihr ruft eure Eltern an.",a:"Ruft eure Eltern an!"},
+{q:"Ihr vergesst die Hausaufgaben nicht.",a:"Vergesst die Hausaufgaben nicht!"},
+{q:"Ihr schlaft früh ein.",a:"Schlaft früh ein!"},
+{q:"Ihr trefft eure Freunde.",a:"Trefft eure Freunde!"},
+{q:"Ihr seht genau hin.",a:"Seht genau hin!"},
+{q:"Ihr haltet die Tür offen.",a:"Haltet die Tür offen!"},
+{q:"Ihr lasst den Hund herein.",a:"Lasst den Hund herein!"},
 
-input,button{
-  padding:12px;
-  font-size:16px;
-  margin:5px;
-  border-radius:10px;
-  border:none;
-}
+{q:"Sie schreiben den Brief.",a:"Schreiben Sie den Brief!"},
+{q:"Sie lesen das Buch.",a:"Lesen Sie das Buch!"},
+{q:"Sie geben mir den Stift.",a:"Geben Sie mir den Stift!"},
+{q:"Sie nehmen die Tasche mit.",a:"Nehmen Sie die Tasche mit!"},
+{q:"Sie essen Ihr Frühstück.",a:"Essen Sie Ihr Frühstück!"},
+{q:"Sie fahren mit dem Zug.",a:"Fahren Sie mit dem Zug!"},
+{q:"Sie laufen schneller.",a:"Laufen Sie schneller!"},
+{q:"Sie sprechen deutlich.",a:"Sprechen Sie deutlich!"},
+{q:"Sie helfen Ihrem Freund.",a:"Helfen Sie Ihrem Freund!"},
+{q:"Sie werfen den Ball.",a:"Werfen Sie den Ball!"},
 
-button{
-  background:#00c6ff;
-  color:white;
-  cursor:pointer;
-}
+{q:"Sie räumen das Zimmer auf.",a:"Räumen Sie das Zimmer auf!"},
+{q:"Sie machen die Hausaufgaben.",a:"Machen Sie die Hausaufgaben!"},
+{q:"Sie öffnen das Fenster.",a:"Öffnen Sie das Fenster!"},
+{q:"Sie schließen die Tür.",a:"Schließen Sie die Tür!"},
+{q:"Sie packen Ihren Rucksack.",a:"Packen Sie Ihren Rucksack!"},
+{q:"Sie bringen das Heft mit.",a:"Bringen Sie das Heft mit!"},
+{q:"Sie holen die Post.",a:"Holen Sie die Post!"},
+{q:"Sie heben das Papier auf.",a:"Heben Sie das Papier auf!"},
+{q:"Sie schalten den Computer ein.",a:"Schalten Sie den Computer ein!"},
+{q:"Sie machen das Licht aus.",a:"Machen Sie das Licht aus!"},
 
-button:hover{ background:#009ed1; }
+{q:"Sie stellen das Glas auf den Tisch.",a:"Stellen Sie das Glas auf den Tisch!"},
+{q:"Sie ziehen die Jacke an.",a:"Ziehen Sie die Jacke an!"},
+{q:"Sie ziehen die Schuhe aus.",a:"Ziehen Sie die Schuhe aus!"},
+{q:"Sie rufen Ihre Mutter an.",a:"Rufen Sie Ihre Mutter an!"},
+{q:"Sie vergessen die Hausaufgaben nicht.",a:"Vergessen Sie die Hausaufgaben nicht!"},
+{q:"Sie schlafen früh ein.",a:"Schlafen Sie früh ein!"},
+{q:"Sie treffen Ihren Freund.",a:"Treffen Sie Ihren Freund!"},
+{q:"Sie sehen genau hin.",a:"Sehen Sie genau hin!"},
+{q:"Sie halten die Tür offen.",a:"Halten Sie die Tür offen!"},
+{q:"Sie lassen den Hund herein.",a:"Lassen Sie den Hund herein!"},
 
-#sentence{
-  font-size:26px;
-  margin:15px;
-}
+{q:"Du putzt die Zähne.",a:"Putz die Zähne!"},
+{q:"Du wäschst die Hände.",a:"Wasch die Hände!"},
+{q:"Du lernst die Wörter.",a:"Lern die Wörter!"},
+{q:"Du zeichnest ein Haus.",a:"Zeichne ein Haus!"},
+{q:"Du malst ein Bild.",a:"Male ein Bild!"},
+{q:"Du rechnest die Aufgabe aus.",a:"Rechne die Aufgabe aus!"},
+{q:"Du suchst den Schlüssel.",a:"Such den Schlüssel!"},
+{q:"Du findest das Heft.",a:"Finde das Heft!"},
+{q:"Du sammelst die Blätter ein.",a:"Sammle die Blätter ein!"},
+{q:"Du sortierst die Bücher.",a:"Sortiere die Bücher!"},
 
-.rank{
-  text-align:left;
-  padding:4px;
-  border-bottom:1px solid rgba(255,255,255,0.1);
-}
+{q:"Ihr putzt die Zähne.",a:"Putzt die Zähne!"},
+{q:"Ihr wascht die Hände.",a:"Wascht die Hände!"},
+{q:"Ihr lernt die Wörter.",a:"Lernt die Wörter!"},
+{q:"Ihr zeichnet ein Haus.",a:"Zeichnet ein Haus!"},
+{q:"Ihr malt ein Bild.",a:"Malt ein Bild!"},
+{q:"Ihr rechnet die Aufgabe aus.",a:"Rechnet die Aufgabe aus!"},
+{q:"Ihr sucht den Schlüssel.",a:"Sucht den Schlüssel!"},
+{q:"Ihr findet das Heft.",a:"Findet das Heft!"},
+{q:"Ihr sammelt die Blätter ein.",a:"Sammelt die Blätter ein!"},
+{q:"Ihr sortiert die Bücher.",a:"Sortiert die Bücher!"},
 
-#result{
-  font-weight:bold;
-  margin-top:10px;
-}
+{q:"Sie putzen die Zähne.",a:"Putzen Sie die Zähne!"},
+{q:"Sie waschen die Hände.",a:"Waschen Sie die Hände!"},
+{q:"Sie lernen die Wörter.",a:"Lernen Sie die Wörter!"},
+{q:"Sie zeichnen ein Haus.",a:"Zeichnen Sie ein Haus!"},
+{q:"Sie malen ein Bild.",a:"Malen Sie ein Bild!"},
+{q:"Sie rechnen die Aufgabe aus.",a:"Rechnen Sie die Aufgabe aus!"},
+{q:"Sie suchen den Schlüssel.",a:"Suchen Sie den Schlüssel!"},
+{q:"Sie finden das Heft.",a:"Finden Sie das Heft!"},
+{q:"Sie sammeln die Blätter ein.",a:"Sammeln Sie die Blätter ein!"},
+{q:"Sie sortieren die Bücher.",a:"Sortieren Sie die Bücher!"},
 
-@keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-  100% { transform: scale(1); }
-}
+{q:"Du kaufst Brot.",a:"Kauf Brot!"},
+{q:"Du verkaufst das Fahrrad.",a:"Verkauf das Fahrrad!"},
+{q:"Du erklärst die Lösung.",a:"Erklär die Lösung!"},
+{q:"Du beantwortest die Frage.",a:"Beantworte die Frage!"},
+{q:"Du kontrollierst die Aufgabe.",a:"Kontrolliere die Aufgabe!"},
+{q:"Du reparierst das Velo.",a:"Repariere das Velo!"},
+{q:"Du besuchst deine Grosseltern.",a:"Besuche deine Grosseltern!"},
+{q:"Du begrüßt deinen Nachbarn.",a:"Begrüße deinen Nachbarn!"},
+{q:"Du verabschiedest dich.",a:"Verabschiede dich!"},
+{q:"Du wartest einen Moment.",a:"Warte einen Moment!"},
 
-.celebrate{
-  animation: pop 0.5s ease;
-}
-</style>
-</head>
+{q:"Ihr kauft Brot.",a:"Kauft Brot!"},
+{q:"Ihr verkauft das Fahrrad.",a:"Verkauft das Fahrrad!"},
+{q:"Ihr erklärt die Lösung.",a:"Erklärt die Lösung!"},
+{q:"Ihr beantwortet die Frage.",a:"Beantwortet die Frage!"},
+{q:"Ihr kontrolliert die Aufgabe.",a:"Kontrolliert die Aufgabe!"},
+{q:"Ihr repariert das Velo.",a:"Repariert das Velo!"},
+{q:"Ihr besucht eure Grosseltern.",a:"Besucht eure Grosseltern!"},
+{q:"Ihr begrüßt euren Nachbarn.",a:"Begrüßt euren Nachbarn!"},
+{q:"Ihr verabschiedet euch.",a:"Verabschiedet euch!"},
+{q:"Ihr wartet einen Moment.",a:"Wartet einen Moment!"},
 
-<body>
+{q:"Sie kaufen Brot.",a:"Kaufen Sie Brot!"},
+{q:"Sie verkaufen das Fahrrad.",a:"Verkaufen Sie das Fahrrad!"},
+{q:"Sie erklären die Lösung.",a:"Erklären Sie die Lösung!"},
+{q:"Sie beantworten die Frage.",a:"Beantworten Sie die Frage!"},
+{q:"Sie kontrollieren die Aufgabe.",a:"Kontrollieren Sie die Aufgabe!"},
+{q:"Sie reparieren das Velo.",a:"Reparieren Sie das Velo!"},
+{q:"Sie besuchen Ihre Grosseltern.",a:"Besuchen Sie Ihre Grosseltern!"},
+{q:"Sie begrüßen Ihren Nachbarn.",a:"Begrüßen Sie Ihren Nachbarn!"},
+{q:"Sie verabschieden sich.",a:"Verabschieden Sie sich!"},
+{q:"Sie warten einen Moment.",a:"Warten Sie einen Moment!"},
 
-<div class="container">
+{q:"Du arbeitest leise.",a:"Arbeite leise!"},
+{q:"Du hörst gut zu.",a:"Hör gut zu!"},
+{q:"Du setzt dich hin.",a:"Setz dich hin!"},
+{q:"Du stehst auf.",a:"Steh auf!"},
+{q:"Du kommst herein.",a:"Komm herein!"},
+{q:"Du gehst hinaus.",a:"Geh hinaus!"},
+{q:"Du bleibst ruhig.",a:"Bleib ruhig!"},
+{q:"Du denkst nach.",a:"Denk nach!"},
+{q:"Du antwortest sofort.",a:"Antworte sofort!"},
+{q:"Du fragst nach.",a:"Frag nach!"},
 
-<h1>🔥 Imperativ Game</h1>
+{q:"Ihr arbeitet leise.",a:"Arbeitet leise!"},
+{q:"Ihr hört gut zu.",a:"Hört gut zu!"},
+{q:"Ihr setzt euch hin.",a:"Setzt euch hin!"},
+{q:"Ihr steht auf.",a:"Steht auf!"},
+{q:"Ihr kommt herein.",a:"Kommt herein!"},
+{q:"Ihr geht hinaus.",a:"Geht hinaus!"},
+{q:"Ihr bleibt ruhig.",a:"Bleibt ruhig!"},
+{q:"Ihr denkt nach.",a:"Denkt nach!"},
+{q:"Ihr antwortet sofort.",a:"Antwortet sofort!"},
+{q:"Ihr fragt nach.",a:"Fragt nach!"},
 
-<p id="lockText">🔒 Status wird geladen...</p>
+{q:"Sie arbeiten leise.",a:"Arbeiten Sie leise!"},
+{q:"Sie hören gut zu.",a:"Hören Sie gut zu!"},
+{q:"Sie setzen sich hin.",a:"Setzen Sie sich hin!"},
+{q:"Sie stehen auf.",a:"Stehen Sie auf!"},
+{q:"Sie kommen herein.",a:"Kommen Sie herein!"},
+{q:"Sie gehen hinaus.",a:"Gehen Sie hinaus!"},
+{q:"Sie bleiben ruhig.",a:"Bleiben Sie ruhig!"},
+{q:"Sie denken nach.",a:"Denken Sie nach!"},
+{q:"Sie antworten sofort.",a:"Antworten Sie sofort!"},
+{q:"Sie fragen nach.",a:"Fragen Sie nach!"}
+];
 
-<div class="card" id="login">
-<input id="name" placeholder="Gebe deinen Namen ein">
-<br>
-<button onclick="start()">Start</button>
-</div>
+<div id="game" style="max-width:900px;margin:auto;text-align:center;">
 
-<div class="card" id="game" style="display:none;">
+<h2 id="sentence">Lade Aufgabe...</h2>
 
-<div id="sentence">---</div>
+<input
+  id="answer"
+  type="text"
+  placeholder="Schreibe den Imperativ"
+  style="padding:12px;width:80%;max-width:500px;font-size:18px;"
+>
 
-<input id="answer" placeholder="Imperativ eingeben">
-<br>
-<button onclick="check()">Prüfen</button>
+<br><br>
 
-<div id="result"></div>
+<button
+  onclick="check()"
+  style="padding:12px 20px;font-size:18px;cursor:pointer;"
+>
+Prüfen
+</button>
 
-<p>🏆 Punkte: <span id="score">0</span></p>
+<p id="result" style="font-size:20px;font-weight:bold;"></p>
 
-<h3>Rangliste</h3>
-<div id="board"></div>
+<h3>🏆 Punkte: <span id="score">0</span></h3>
 
-<p id="top"></p>
-
-</div>
+<h3>🔥 Serie: <span id="streak">0</span></h3>
 
 </div>
 
 <script>
 
-// 🔥 Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
-  authDomain: "imperativ-trainer.firebaseapp.com",
-  databaseURL: "https://imperativ-trainer-default-rtdb.firebaseio.com",
-  projectId: "imperativ-trainer",
-  storageBucket: "imperativ-trainer.firebasestorage.app",
-  messagingSenderId: "1007314946383",
-  appId: "1:1007314946383:web:ff2d6a8891a68570e39d3a"
-};
+let score = 0;
+let streak = 0;
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+let currentTask = null;
 
-let name="";
-let score=0;
-let streak=0;
-let current={};
+let shuffledTasks = [];
+let currentIndex = 0;
 
-let order=[];
-let index=0;
+// mischen
+function shuffle(array){
 
-// 💾 LOCK STATUS (bleibt gespeichert)
-let unlocked = localStorage.getItem("unlocked")==="true";
+  let arr = [...array];
 
-updateLockText();
+  for(let i = arr.length - 1; i > 0; i--){
 
-function updateLockText(){
-  document.getElementById("lockText").innerText =
-    unlocked ? "🟢 Spiel freigeschaltet" : "🔒 Spiel gesperrt";
-}
+    let j = Math.floor(Math.random() * (i + 1));
 
-// 🔐 START / ADMIN SYSTEM
-function start(){
-
-  let input=document.getElementById("name").value.trim();
-
-  // 🔓 Admin freischalten
-  if(input==="Samuel2012!"){
-    unlocked=true;
-    localStorage.setItem("unlocked","true");
-    updateLockText();
-    alert("Admin aktiviert!");
-    return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 
-  // 🔒 Sperren
-  if(input==="Admin"){
-    unlocked=false;
-    localStorage.setItem("unlocked","false");
-    updateLockText();
-    alert("Spiel gesperrt!");
-    return;
+  return arr;
+}
+
+// neue Runde
+function startRound(){
+
+  shuffledTasks = shuffle(tasks);
+
+  currentIndex = 0;
+}
+
+// nächste Aufgabe
+function nextTask(){
+
+  if(currentIndex >= shuffledTasks.length){
+
+    startRound();
   }
 
-  // 🚫 block wenn gesperrt
-  if(!unlocked){
-    alert("Spiel ist gesperrt!");
-    return;
-  }
+  currentTask = shuffledTasks[currentIndex];
 
-  name=input;
-  if(!name) return alert("Gebe deinen Namen ein");
+  currentIndex++;
 
-  document.getElementById("login").style.display="none";
-  document.getElementById("game").style.display="block";
+  document.getElementById("sentence").innerText =
+    currentTask.q;
 
-  shuffle();
-  next();
+  document.getElementById("answer").value = "";
 }
 
-// 🧠 200 Aufgaben
-const baseTasks=[
-{q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
-{q:"Du liest das Buch.",a:"Lies das Buch!"},
-{q:"Du öffnest die Tür.",a:"Öffne die Tür!"},
-{q:"Du schließt das Fenster.",a:"Schließ das Fenster!"},
-{q:"Du holst den Ball.",a:"Hol den Ball!"},
-{q:"Du bringst das Heft.",a:"Bring das Heft!"},
-{q:"Du gibst mir das Buch.",a:"Gib mir das Buch!"},
-{q:"Du nimmst den Stift.",a:"Nimm den Stift!"},
-{q:"Du gehst nach Hause.",a:"Geh nach Hause!"},
-{q:"Du kommst hierher.",a:"Komm hierher!"},
+// vergleichen
+function normalize(text){
 
-{q:"Ihr lest den Text.",a:"Lest den Text!"},
-{q:"Ihr schreibt die Aufgabe.",a:"Schreibt die Aufgabe!"},
-{q:"Ihr öffnet die Bücher.",a:"Öffnet die Bücher!"},
-{q:"Ihr macht die Hausaufgaben.",a:"Macht die Hausaufgaben!"},
-{q:"Ihr zeigt die Lösung.",a:"Zeigt die Lösung!"},
-
-{q:"Sie öffnen das Fenster.",a:"Öffnen Sie das Fenster!"},
-{q:"Sie schließen die Tür.",a:"Schließen Sie die Tür!"},
-{q:"Sie lesen den Brief.",a:"Lesen Sie den Brief!"},
-{q:"Sie schreiben die Lösung.",a:"Schreiben Sie die Lösung!"}
-];
-
-let tasks=[];
-for(let i=0;i<200;i++){
-  tasks.push(baseTasks[i%baseTasks.length]);
+  return text
+    .toLowerCase()
+    .replace(/ß/g,"ss")
+    .replace(/[.!?,]/g,"")
+    .replace(/\s+/g," ")
+    .trim();
 }
 
-// 🔀 shuffle
-function shuffle(){
-  order=[...Array(tasks.length).keys()];
-  for(let i=order.length-1;i>0;i--){
-    let j=Math.floor(Math.random()*(i+1));
-    [order[i],order[j]]=[order[j],order[i]];
-  }
-  index=0;
+// Animationen
+function celebrate(){
+
+  const effects = [
+
+    "🎉 Super!",
+    "🚀 Mega!",
+    "🔥 Stark!",
+    "🏆 Klasse!",
+    "⭐ Perfekt!",
+    "💯 Unglaublich!",
+    "🎊 Weiter so!"
+  ];
+
+  const msg =
+    effects[Math.floor(Math.random()*effects.length)];
+
+  document.getElementById("result").innerHTML =
+    "<span style='font-size:28px'>" +
+    msg +
+    "</span>";
+
+  document.getElementById("result").style.color =
+    "gold";
 }
 
-// 🔄 next
-function next(){
-  if(index>=order.length) shuffle();
-
-  current=tasks[order[index]];
-  index++;
-
-  document.getElementById("sentence").innerText=current.q;
-  document.getElementById("answer").value="";
-  document.getElementById("result").innerText="";
-}
-
-// 🧠 normalize
-function norm(t){
-  return t.toLowerCase()
-  .replaceAll("ß","ss")
-  .replace(/[.!?,]/g,"")
-  .trim();
-}
-
-// 🎉 animation
-function animate(){
-  const game=document.getElementById("game");
-  game.classList.add("celebrate");
-  setTimeout(()=>game.classList.remove("celebrate"),500);
-}
-
-// ✔️ check
+// prüfen
 function check(){
 
-  let u=norm(document.getElementById("answer").value);
-  let c=norm(current.a);
+  const userAnswer =
+    normalize(document.getElementById("answer").value);
 
-  if(u===c){
+  const correctAnswer =
+    normalize(currentTask.a);
+
+  if(userAnswer === correctAnswer){
 
     score++;
     streak++;
 
-    document.getElementById("score").innerText=score;
+    document.getElementById("result").innerHTML =
+      "✅ Richtig";
 
-    db.ref("scores/"+name).set(score);
+    document.getElementById("result").style.color =
+      "lime";
 
-    document.getElementById("result").innerText="✔ Richtig!";
-    document.getElementById("result").style.color="#00ff88";
+    if(streak % 10 === 0){
 
-    if(streak%10===0){
-      animate();
+      celebrate();
     }
-
-    setTimeout(next,500);
 
   }else{
 
-    score=0;
-    streak=0;
+    streak = 0;
 
-    document.getElementById("score").innerText=0;
+    document.getElementById("result").innerHTML =
+      "❌ Falsch<br><br>Richtig wäre:<br><b>" +
+      currentTask.a +
+      "</b>";
 
-    document.getElementById("result").innerText="✘ Falsch → "+current.a;
-    document.getElementById("result").style.color="#ff4d4d";
-
-    setTimeout(next,900);
+    document.getElementById("result").style.color =
+      "#ff4444";
   }
+
+  document.getElementById("score").innerText =
+    score;
+
+  document.getElementById("streak").innerText =
+    streak;
+
+  setTimeout(nextTask,1200);
 }
 
-// 🏆 leaderboard
-db.ref("scores").on("value",snap=>{
-  let data=snap.val()||{};
+// ENTER Taste
+document.addEventListener("keydown",function(e){
 
-  let list=Object.keys(data).map(n=>{
-    return {name:n,score:data[n]};
-  });
+  if(e.key === "Enter"){
 
-  list.sort((a,b)=>b.score-a.score);
-
-  document.getElementById("board").innerHTML=
-    list.map((p,i)=>`<div class="rank">${i+1}. ${p.name} - ${p.score}</div>`).join("");
-
-  if(list.length){
-    document.getElementById("top").innerText=
-      "🥇 #1: "+list[0].name+" ("+list[0].score+")";
+    check();
   }
 });
-</script>
 
-</body>
-</html>#
+// Start
+startRound();
+nextTask();
+
+</script>
