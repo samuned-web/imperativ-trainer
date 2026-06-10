@@ -6,107 +6,194 @@
 <title>Imperativ Trainer</title>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    margin: 40px;
+body{
+    font-family:Arial,sans-serif;
+    text-align:center;
+    margin:20px;
 }
 
-.box {
-    max-width: 600px;
-    margin: auto;
-    padding: 20px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
+.box{
+    max-width:700px;
+    margin:auto;
+    padding:20px;
+    border:2px solid #ccc;
+    border-radius:10px;
 }
 
-input {
-    width: 80%;
-    padding: 10px;
-    margin: 10px;
+#sentence{
+    font-size:24px;
+    margin:20px;
 }
 
-button {
-    padding: 10px 20px;
-    margin: 5px;
-    cursor: pointer;
+input{
+    width:90%;
+    padding:10px;
+    font-size:18px;
 }
 
-#sentence {
-    font-size: 22px;
-    margin: 20px;
+button{
+    padding:10px 20px;
+    margin:10px;
+    font-size:16px;
 }
 
-#result {
-    font-weight: bold;
-    font-size: 18px;
+#result{
+    font-weight:bold;
+    font-size:20px;
+    margin-top:15px;
 }
 </style>
 </head>
-
 <body>
 
 <div class="box">
-    <h1>Imperativ Trainer</h1>
 
-    <p>Übersetze den Satz in den Imperativ.</p>
+<h1>Imperativ Trainer</h1>
 
-    <div id="sentence"></div>
+<p><b>Aktuelle Serie:</b> <span id="streak">0</span></p>
+<p><b>Tagesrekord:</b> <span id="record">0</span></p>
 
-    <input type="text" id="answer" placeholder="Deine Antwort">
+<div id="sentence"></div>
 
-    <br>
+<input id="answer" placeholder="Schreibe den Satz im Imperativ">
 
-    <button onclick="checkAnswer()">Prüfen</button>
-    <button onclick="newTask()">Neue Aufgabe</button>
+<br>
 
-    <p id="result"></p>
+<button onclick="checkAnswer()">Prüfen</button>
+
+<div id="result"></div>
+
 </div>
 
 <script>
-const verbs = [
-    {inf:"machen", du:"mach", ihr:"macht", sie:"machen Sie"},
-    {inf:"gehen", du:"geh", ihr:"geht", sie:"gehen Sie"},
-    {inf:"lesen", du:"lies", ihr:"lest", sie:"lesen Sie"},
-    {inf:"schreiben", du:"schreib", ihr:"schreibt", sie:"schreiben Sie"},
-    {inf:"öffnen", du:"öffne", ihr:"öffnet", sie:"öffnen Sie"},
-    {inf:"schließen", du:"schließ", ihr:"schließt", sie:"schließen Sie"},
-    {inf:"holen", du:"hol", ihr:"holt", sie:"holen Sie"}
-];
 
-let correctAnswer = "";
+const tasks = [
 
-function newTask() {
-    const verb = verbs[Math.floor(Math.random() * verbs.length)];
-    const forms = ["du", "ihr", "Sie"];
-    const form = forms[Math.floor(Math.random() * forms.length)];
+{
+satz:"Du schreibst den Brief.",
+antwort:"Schreib den Brief!"
+},
 
-    document.getElementById("sentence").innerText =
-        form.toUpperCase() + ": " + verb.inf + " das Buch.";
+{
+satz:"Ihr lest das Buch.",
+antwort:"Lest das Buch!"
+},
 
-    if (form === "du") correctAnswer = verb.du;
-    else if (form === "ihr") correctAnswer = verb.ihr;
-    else correctAnswer = verb.sie;
+{
+satz:"Sie öffnen das Fenster.",
+antwort:"Öffnen Sie das Fenster!"
+},
 
-    document.getElementById("answer").value = "";
-    document.getElementById("result").innerText = "";
+{
+satz:"Du gehst nach Hause.",
+antwort:"Geh nach Hause!"
+},
+
+{
+satz:"Ihr macht die Hausaufgaben.",
+antwort:"Macht die Hausaufgaben!"
+},
+
+{
+satz:"Sie schließen die Tür.",
+antwort:"Schließen Sie die Tür!"
+},
+
+{
+satz:"Du holst den Ball.",
+antwort:"Hol den Ball!"
+},
+
+{
+satz:"Ihr schreibt die Lösung.",
+antwort:"Schreibt die Lösung!"
+},
+
+{
+satz:"Sie lesen die Zeitung.",
+antwort:"Lesen Sie die Zeitung!"
+},
+
+{
+satz:"Du grüßt deinen Nachbarn.",
+antwort:"Grüß deinen Nachbarn!"
 }
 
-function checkAnswer() {
-    const userAnswer =
-        document.getElementById("answer").value.trim().toLowerCase();
+];
 
-    if (userAnswer === correctAnswer.toLowerCase()) {
-        document.getElementById("result").innerText = "✔ Richtig!";
-        document.getElementById("result").style.color = "green";
-    } else {
-        document.getElementById("result").innerText =
-            "✘ Falsch. Richtig wäre: " + correctAnswer;
-        document.getElementById("result").style.color = "red";
-    }
+let currentTask;
+let streak = 0;
+let record = 0;
+
+function normalize(text){
+
+return text
+.toLowerCase()
+.replaceAll("ß","ss")
+.replace(/[.!?,]/g,"")
+.replace(/\s+/g," ")
+.trim();
+
+}
+
+function newTask(){
+
+currentTask =
+tasks[Math.floor(Math.random()*tasks.length)];
+
+document.getElementById("sentence").innerText =
+currentTask.satz;
+
+document.getElementById("answer").value="";
+
+}
+
+function checkAnswer(){
+
+const user =
+normalize(document.getElementById("answer").value);
+
+const correct =
+normalize(currentTask.antwort);
+
+if(user === correct){
+
+streak++;
+
+if(streak > record){
+record = streak;
+}
+
+document.getElementById("result").innerHTML =
+"✅ Richtig";
+
+document.getElementById("result").style.color =
+"green";
+
+}else{
+
+document.getElementById("result").innerHTML =
+"❌ Falsch<br>Richtig wäre:<br>" +
+currentTask.antwort;
+
+document.getElementById("result").style.color =
+"red";
+
+streak = 0;
+}
+
+document.getElementById("streak").innerText =
+streak;
+
+document.getElementById("record").innerText =
+record;
+
+setTimeout(newTask,2000);
+
 }
 
 newTask();
+
 </script>
 
 </body>
