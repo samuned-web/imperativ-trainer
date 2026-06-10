@@ -11,70 +11,39 @@
 <style>
 body{
   margin:0;
-  font-family: Arial, sans-serif;
-  background: linear-gradient(135deg,#1e3c72,#2a5298);
+  font-family: Arial;
+  background: linear-gradient(135deg,#141e30,#243b55);
   color:white;
   text-align:center;
 }
 
-.container{
-  max-width:700px;
-  margin:auto;
-  padding:20px;
-}
+.container{ max-width:800px; margin:auto; padding:20px; }
 
 .card{
-  background: rgba(255,255,255,0.1);
-  border-radius:15px;
+  background: rgba(255,255,255,0.08);
   padding:20px;
   margin-top:20px;
-  backdrop-filter: blur(10px);
+  border-radius:15px;
+  backdrop-filter: blur(8px);
 }
 
-input{
+input,button{
   padding:12px;
-  width:80%;
-  border:none;
-  border-radius:8px;
-  margin:10px;
   font-size:16px;
-}
-
-button{
-  padding:12px 20px;
-  border:none;
-  border-radius:8px;
-  background:#00c6ff;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
   margin:5px;
+  border-radius:8px;
+  border:none;
 }
 
-button:hover{
-  background:#009fd4;
-}
+button{ cursor:pointer; background:#00c6ff; color:white; }
 
-#sentence{
-  font-size:22px;
-  margin:15px 0;
-}
+button:hover{ background:#009ed1; }
 
-#result{
-  font-size:18px;
-  font-weight:bold;
-  margin-top:10px;
-}
+#sentence{ font-size:24px; margin:15px; }
 
-#board{
-  text-align:left;
-  margin-top:10px;
-}
+.rank{ text-align:left; padding:4px; border-bottom:1px solid rgba(255,255,255,0.1); }
 
-.rank{
-  padding:5px;
-  border-bottom:1px solid rgba(255,255,255,0.2);
-}
+#result{ font-weight:bold; margin-top:10px; }
 </style>
 </head>
 
@@ -84,15 +53,12 @@ button:hover{
 
 <h1>🔥 Imperativ Game</h1>
 
-<div class="card">
-
-<input id="name" placeholder="Dein Name eingeben">
-<br>
+<div class="card" id="login">
+<input id="name" placeholder="Dein Name">
 <button onclick="start()">Start</button>
-
 </div>
 
-<div id="game" class="card" style="display:none;">
+<div id="game" style="display:none;" class="card">
 
 <div id="sentence">---</div>
 
@@ -115,7 +81,7 @@ button:hover{
 
 <script>
 
-// 🔥 Firebase Config (dein Projekt)
+// 🔥 Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
   authDomain: "imperativ-trainer.firebaseapp.com",
@@ -130,106 +96,146 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 let name = "";
-let score = 0;
-let current = {};
-let lastIndex = -1;
+let sessionScore = 0;
 
-// 🧠 Aufgaben
-const tasks = [
-  {q:"Du schreibst den Brief.", a:"Schreib den Brief!"},
-  {q:"Ihr lest das Buch.", a:"Lest das Buch!"},
-  {q:"Sie öffnen die Tür.", a:"Öffnen Sie die Tür!"},
-  {q:"Du gehst nach Hause.", a:"Geh nach Hause!"},
-  {q:"Ihr macht die Hausaufgaben.", a:"Macht die Hausaufgaben!"},
-  {q:"Sie schließen das Fenster.", a:"Schließen Sie das Fenster!"},
-  {q:"Du holst den Ball.", a:"Hol den Ball!"},
-  {q:"Ihr schreibt die Lösung.", a:"Schreibt die Lösung!"}
+let order = [];
+let index = 0;
+
+// 🧠 120 Aufgaben (hier komprimiert generiert + erweitert)
+const verbs = [
+"schreiben","lesen","öffnen","schließen","holen","bringen","geben","nehmen",
+"zeigen","erklären","sagen","fragen","antworten","machen","gehen","kommen",
+"laufen","sitzen","stehen","warten","arbeiten","zeichnen","bauen","werfen",
+"fangen","suchen","finden","verlieren","kaufen","verkaufen"
 ];
+
+// Aufgaben generieren (120 Stück)
+const tasks = [];
+
+const forms = ["du","ihr","Sie"];
+
+function buildTasks(){
+  for(let i=0;i<120;i++){
+    let v = verbs[Math.floor(Math.random()*verbs.length)];
+    let f = forms[Math.floor(Math.random()*3)];
+
+    let q = "";
+
+    if(f==="du") q = "Du " + v + "st den Satz.";
+    if(f==="ihr") q = "Ihr " + v + "t den Satz.";
+    if(f==="Sie") q = "Sie " + v + "en den Satz.";
+
+    let a = "";
+
+    if(f==="du") a = v.charAt(0).toUpperCase()+v.slice(1)+" den Satz!";
+    if(f==="ihr") a = v.charAt(0).toUpperCase()+v.slice(1)+"t den Satz!";
+    if(f==="Sie") a = v.charAt(0).toUpperCase()+v.slice(1)+"en den Satz!";
+
+    tasks.push({q,a});
+  }
+}
+buildTasks();
+
+// 🔀 Shuffle (Fisher-Yates)
+function shuffle(){
+  order = [...Array(tasks.length).keys()];
+  for(let i=order.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [order[i],order[j]]=[order[j],order[i]];
+  }
+  index = 0;
+}
 
 // 👤 Start
 function start(){
   name = document.getElementById("name").value.trim();
-  if(!name) return alert("Bitte Namen eingeben!");
+  if(!name) return alert("Name eingeben!");
 
-  document.getElementById("game").style.display = "block";
+  document.getElementById("login").style.display="none";
+  document.getElementById("game").style.display="block";
+
+  shuffle();
   newTask();
 }
 
 // 🔄 neue Aufgabe
 function newTask(){
-  let i;
-  do{
-    i = Math.floor(Math.random()*tasks.length);
-  } while(i === lastIndex && tasks.length > 1);
 
-  lastIndex = i;
-  current = tasks[i];
+  if(index >= order.length){
+    shuffle(); // 🔁 erst wenn alle durch sind
+  }
+
+  current = tasks[order[index]];
+  index++;
 
   document.getElementById("sentence").innerText = current.q;
-  document.getElementById("answer").value = "";
-  document.getElementById("result").innerText = "";
+  document.getElementById("answer").value="";
+  document.getElementById("result").innerText="";
 }
 
-// 🧠 Normalisieren
-function normalize(t){
+// 🧠 normalize
+function norm(t){
   return t.toLowerCase()
     .replaceAll("ß","ss")
     .replace(/[.!?,]/g,"")
     .trim();
 }
 
-// ✔️ prüfen
+// ✔️ check
 function check(){
-  let u = normalize(document.getElementById("answer").value);
-  let c = normalize(current.a);
+  let u = norm(document.getElementById("answer").value);
+  let c = norm(current.a);
 
   if(u === c){
-    score++;
-    document.getElementById("score").innerText = score;
+    sessionScore++;
+    document.getElementById("score").innerText=sessionScore;
 
-    db.ref("scores/"+name).set(score);
+    db.ref("scores/"+name).once("value",snap=>{
+      let old = snap.val()||0;
+      if(sessionScore>old){
+        db.ref("scores/"+name).set(sessionScore);
+      }
+    });
 
-    document.getElementById("result").innerText = "✔ Richtig!";
-    document.getElementById("result").style.color = "#00ff88";
+    document.getElementById("result").innerText="✔ Richtig!";
+    document.getElementById("result").style.color="#00ff88";
 
-    setTimeout(newTask, 800);
+    setTimeout(newTask,600);
 
   } else {
-    score = 0;
-    document.getElementById("score").innerText = score;
+    sessionScore=0;
+    document.getElementById("score").innerText=0;
 
-    db.ref("scores/"+name).set(score);
+    document.getElementById("result").innerText="✘ Falsch → "+current.a;
+    document.getElementById("result").style.color="#ff4d4d";
 
-    document.getElementById("result").innerText = "✘ Falsch → " + current.a;
-    document.getElementById("result").style.color = "#ff4d4d";
-
-    setTimeout(newTask, 1200);
+    setTimeout(newTask,1000);
   }
 }
 
-// 🏆 Rangliste (sortiert)
-db.ref("scores").on("value", snap=>{
-  let data = snap.val() || {};
+// 🏆 leaderboard
+db.ref("scores").on("value",snap=>{
+  let data=snap.val()||{};
 
-  let list = Object.keys(data).map(n=>{
-    return {name:n, score:data[n]};
+  let list=Object.keys(data).map(n=>{
+    return {name:n,score:data[n]};
   });
 
   list.sort((a,b)=>b.score-a.score);
 
-  let html = "";
-
+  let html="";
   list.forEach((p,i)=>{
-    html += `<div class="rank">${i+1}. ${p.name} - ${p.score}</div>`;
+    html+=`<div class="rank">${i+1}. ${p.name} - ${p.score}</div>`;
   });
 
-  document.getElementById("board").innerHTML = html;
+  document.getElementById("board").innerHTML=html;
 
-  if(list.length>0){
-    document.getElementById("top").innerText =
-      "🥇 Aktuell #1: " + list[0].name + " (" + list[0].score + ")";
+  if(list.length){
+    document.getElementById("top").innerText=
+      "🥇 #1: "+list[0].name+" ("+list[0].score+")";
   }
 });
+
 </script>
 
 </body>
