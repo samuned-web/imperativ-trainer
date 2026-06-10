@@ -3,60 +3,104 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Imperativ Multiplayer</title>
+<title>Imperativ Game</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <style>
 body{
-  font-family: Arial;
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg,#1e3c72,#2a5298);
+  color:white;
   text-align:center;
-  margin:20px;
 }
 
-.box{
-  max-width:650px;
+.container{
+  max-width:700px;
   margin:auto;
+  padding:20px;
 }
 
-input, button{
-  padding:10px;
-  margin:5px;
+.card{
+  background: rgba(255,255,255,0.1);
+  border-radius:15px;
+  padding:20px;
+  margin-top:20px;
+  backdrop-filter: blur(10px);
+}
+
+input{
+  padding:12px;
+  width:80%;
+  border:none;
+  border-radius:8px;
+  margin:10px;
   font-size:16px;
+}
+
+button{
+  padding:12px 20px;
+  border:none;
+  border-radius:8px;
+  background:#00c6ff;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+  margin:5px;
+}
+
+button:hover{
+  background:#009fd4;
 }
 
 #sentence{
   font-size:22px;
-  margin:20px;
+  margin:15px 0;
+}
+
+#result{
+  font-size:18px;
+  font-weight:bold;
+  margin-top:10px;
 }
 
 #board{
-  margin-top:20px;
   text-align:left;
-  border-top:1px solid #ccc;
-  padding-top:10px;
+  margin-top:10px;
+}
+
+.rank{
+  padding:5px;
+  border-bottom:1px solid rgba(255,255,255,0.2);
 }
 </style>
 </head>
 
 <body>
 
-<div class="box">
+<div class="container">
 
-<h2>🔥 Imperativ Multiplayer</h2>
+<h1>🔥 Imperativ Game</h1>
 
-<input id="name" placeholder="Dein Name">
+<div class="card">
+
+<input id="name" placeholder="Dein Name eingeben">
+<br>
 <button onclick="start()">Start</button>
 
-<hr>
+</div>
 
-<div id="game" style="display:none;">
+<div id="game" class="card" style="display:none;">
 
-<p id="sentence">---</p>
+<div id="sentence">---</div>
 
 <input id="answer" placeholder="Satz im Imperativ">
+<br>
 <button onclick="check()">Prüfen</button>
+
+<div id="result"></div>
 
 <p>🏆 Punkte: <span id="score">0</span></p>
 
@@ -71,7 +115,7 @@ input, button{
 
 <script>
 
-// 🔥 FIREBASE CONFIG (DEINE DATEN)
+// 🔥 Firebase Config (dein Projekt)
 const firebaseConfig = {
   apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
   authDomain: "imperativ-trainer.firebaseapp.com",
@@ -105,67 +149,87 @@ const tasks = [
 // 👤 Start
 function start(){
   name = document.getElementById("name").value.trim();
-  if(!name) return alert("Name eingeben!");
+  if(!name) return alert("Bitte Namen eingeben!");
 
   document.getElementById("game").style.display = "block";
   newTask();
 }
 
-// 🔄 neue Aufgabe (kein Doppel hintereinander)
+// 🔄 neue Aufgabe
 function newTask(){
-  let index;
-
+  let i;
   do{
-    index = Math.floor(Math.random()*tasks.length);
-  } while(index === lastIndex && tasks.length > 1);
+    i = Math.floor(Math.random()*tasks.length);
+  } while(i === lastIndex && tasks.length > 1);
 
-  lastIndex = index;
-  current = tasks[index];
+  lastIndex = i;
+  current = tasks[i];
 
   document.getElementById("sentence").innerText = current.q;
   document.getElementById("answer").value = "";
+  document.getElementById("result").innerText = "";
 }
 
-// ✅ Antwort prüfen
-function check(){
-  let ans = document.getElementById("answer").value.trim().toLowerCase();
+// 🧠 Normalisieren
+function normalize(t){
+  return t.toLowerCase()
+    .replaceAll("ß","ss")
+    .replace(/[.!?,]/g,"")
+    .trim();
+}
 
-  if(ans === current.a.toLowerCase()){
+// ✔️ prüfen
+function check(){
+  let u = normalize(document.getElementById("answer").value);
+  let c = normalize(current.a);
+
+  if(u === c){
     score++;
     document.getElementById("score").innerText = score;
 
     db.ref("scores/"+name).set(score);
 
-    newTask();
-  }
+    document.getElementById("result").innerText = "✔ Richtig!";
+    document.getElementById("result").style.color = "#00ff88";
 
-  document.getElementById("answer").value = "";
+    setTimeout(newTask, 800);
+
+  } else {
+    score = 0;
+    document.getElementById("score").innerText = score;
+
+    db.ref("scores/"+name).set(score);
+
+    document.getElementById("result").innerText = "✘ Falsch → " + current.a;
+    document.getElementById("result").style.color = "#ff4d4d";
+
+    setTimeout(newTask, 1200);
+  }
 }
 
-// 🏆 LIVE RANGLISTE (SORTIERT)
-db.ref("scores").on("value", snap => {
+// 🏆 Rangliste (sortiert)
+db.ref("scores").on("value", snap=>{
   let data = snap.val() || {};
 
-  let list = Object.keys(data).map(n => {
-    return { name:n, score:data[n] };
+  let list = Object.keys(data).map(n=>{
+    return {name:n, score:data[n]};
   });
 
-  list.sort((a,b) => b.score - a.score);
+  list.sort((a,b)=>b.score-a.score);
 
   let html = "";
 
-  list.forEach((p,i) => {
-    html += `<div>${i+1}. ${p.name}: ${p.score}</div>`;
+  list.forEach((p,i)=>{
+    html += `<div class="rank">${i+1}. ${p.name} - ${p.score}</div>`;
   });
 
   document.getElementById("board").innerHTML = html;
 
-  if(list.length > 0){
+  if(list.length>0){
     document.getElementById("top").innerText =
       "🥇 Aktuell #1: " + list[0].name + " (" + list[0].score + ")";
   }
 });
-
 </script>
 
 </body>
