@@ -1,4 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imperativ Trainer</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#0f172a;
+    color:white;
+    text-align:center;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:20px;
+    margin-top:20px;
+}
+
+input{
+    padding:12px;
+    font-size:18px;
+    width:80%;
+    max-width:500px;
+}
+
+button{
+    padding:12px 20px;
+    font-size:18px;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+#sentence{
+    font-size:28px;
+    margin:20px;
+}
+
+.correct{
+    color:lime;
+}
+
+.wrong{
+    color:#ff5555;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>🔥 Imperativ Trainer</h1>
+
+<!-- LOGIN -->
+<div id="login" class="card">
+
+<h2>Gebe deinen Namen ein</h2>
+
+<input id="name" placeholder="Name">
+
+<br>
+
+<button onclick="startGame()">
+Start
+</button>
+
+</div>
+
+<!-- SPIEL -->
+<div id="game" class="card" style="display:none;">
+
+<h2 id="sentence">
+Lade...
+</h2>
+
+<input
+id="answer"
+placeholder="Schreibe den Imperativ">
+
+<br>
+
+<button onclick="check()">
+Prüfen
+</button>
+
+<p id="result"></p>
+
+<h3>
+🏆 Punkte:
+<span id="score">0</span>
+</h3>
+
+<h3>
+🔥 Serie:
+<span id="streak">0</span>
+</h3>
+
+</div>
+
+</div>
+
+<script>
+
+/* =======================================
+   HIER DEINE 180 AUFGABEN EINFÜGEN
+   ======================================= */
+
 const tasks = [
+
+/* HIER DIE KOMPLETTE LISTE EINFÜGEN */
 {q:"Du schreibst den Brief.",a:"Schreib den Brief!"},
 {q:"Du liest das Buch.",a:"Lies das Buch!"},
 {q:"Du gibst mir den Stift.",a:"Gib mir den Stift!"},
@@ -195,37 +315,12 @@ const tasks = [
 {q:"Sie denken nach.",a:"Denken Sie nach!"},
 {q:"Sie antworten sofort.",a:"Antworten Sie sofort!"},
 {q:"Sie fragen nach.",a:"Fragen Sie nach!"}
+
 ];
 
-<div id="game" style="max-width:900px;margin:auto;text-align:center;">
-
-<h2 id="sentence">Lade Aufgabe...</h2>
-
-<input
-  id="answer"
-  type="text"
-  placeholder="Schreibe den Imperativ"
-  style="padding:12px;width:80%;max-width:500px;font-size:18px;"
->
-
-<br><br>
-
-<button
-  onclick="check()"
-  style="padding:12px 20px;font-size:18px;cursor:pointer;"
->
-Prüfen
-</button>
-
-<p id="result" style="font-size:20px;font-weight:bold;"></p>
-
-<h3>🏆 Punkte: <span id="score">0</span></h3>
-
-<h3>🔥 Serie: <span id="streak">0</span></h3>
-
-</div>
-
-<script>
+/* =======================================
+   AB HIER NICHTS ÄNDERN
+   ======================================= */
 
 let score = 0;
 let streak = 0;
@@ -235,142 +330,162 @@ let currentTask = null;
 let shuffledTasks = [];
 let currentIndex = 0;
 
-// mischen
-function shuffle(array){
+function startGame(){
 
-  let arr = [...array];
+    const name =
+        document.getElementById("name").value.trim();
 
-  for(let i = arr.length - 1; i > 0; i--){
+    if(!name){
 
-    let j = Math.floor(Math.random() * (i + 1));
-
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-
-  return arr;
-}
-
-// neue Runde
-function startRound(){
-
-  shuffledTasks = shuffle(tasks);
-
-  currentIndex = 0;
-}
-
-// nächste Aufgabe
-function nextTask(){
-
-  if(currentIndex >= shuffledTasks.length){
-
-    startRound();
-  }
-
-  currentTask = shuffledTasks[currentIndex];
-
-  currentIndex++;
-
-  document.getElementById("sentence").innerText =
-    currentTask.q;
-
-  document.getElementById("answer").value = "";
-}
-
-// vergleichen
-function normalize(text){
-
-  return text
-    .toLowerCase()
-    .replace(/ß/g,"ss")
-    .replace(/[.!?,]/g,"")
-    .replace(/\s+/g," ")
-    .trim();
-}
-
-// Animationen
-function celebrate(){
-
-  const effects = [
-
-    "🎉 Super!",
-    "🚀 Mega!",
-    "🔥 Stark!",
-    "🏆 Klasse!",
-    "⭐ Perfekt!",
-    "💯 Unglaublich!",
-    "🎊 Weiter so!"
-  ];
-
-  const msg =
-    effects[Math.floor(Math.random()*effects.length)];
-
-  document.getElementById("result").innerHTML =
-    "<span style='font-size:28px'>" +
-    msg +
-    "</span>";
-
-  document.getElementById("result").style.color =
-    "gold";
-}
-
-// prüfen
-function check(){
-
-  const userAnswer =
-    normalize(document.getElementById("answer").value);
-
-  const correctAnswer =
-    normalize(currentTask.a);
-
-  if(userAnswer === correctAnswer){
-
-    score++;
-    streak++;
-
-    document.getElementById("result").innerHTML =
-      "✅ Richtig";
-
-    document.getElementById("result").style.color =
-      "lime";
-
-    if(streak % 10 === 0){
-
-      celebrate();
+        alert("Bitte Namen eingeben");
+        return;
     }
 
-  }else{
+    document.getElementById("login").style.display =
+        "none";
 
-    streak = 0;
+    document.getElementById("game").style.display =
+        "block";
 
-    document.getElementById("result").innerHTML =
-      "❌ Falsch<br><br>Richtig wäre:<br><b>" +
-      currentTask.a +
-      "</b>";
-
-    document.getElementById("result").style.color =
-      "#ff4444";
-  }
-
-  document.getElementById("score").innerText =
-    score;
-
-  document.getElementById("streak").innerText =
-    streak;
-
-  setTimeout(nextTask,1200);
+    startRound();
+    nextTask();
 }
 
-// ENTER Taste
-document.addEventListener("keydown",function(e){
+function shuffle(array){
 
-  if(e.key === "Enter"){
+    let arr = [...array];
 
-    check();
-  }
-});
+    for(let i = arr.length - 1; i > 0; i--){
 
-// Start
-startRound();
-nextTask();
+        const j =
+            Math.floor(Math.random() * (i + 1));
+
+        [arr[i], arr[j]] =
+            [arr[j], arr[i]];
+    }
+
+    return arr;
+}
+
+function startRound(){
+
+    shuffledTasks =
+        shuffle(tasks);
+
+    currentIndex = 0;
+}
+
+function nextTask(){
+
+    if(currentIndex >= shuffledTasks.length){
+
+        startRound();
+    }
+
+    currentTask =
+        shuffledTasks[currentIndex];
+
+    currentIndex++;
+
+    document.getElementById("sentence")
+        .innerText =
+        currentTask.q;
+
+    document.getElementById("answer").value = "";
+
+    document.getElementById("answer").focus();
+}
+
+function normalize(text){
+
+    return text
+        .toLowerCase()
+        .replace(/ß/g,"ss")
+        .replace(/[.!?,]/g,"")
+        .replace(/\s+/g," ")
+        .trim();
+}
+
+function celebrate(){
+
+    const messages = [
+
+        "🎉 Super!",
+        "🔥 Stark!",
+        "🏆 Klasse!",
+        "⭐ Perfekt!",
+        "🚀 Mega!"
+    ];
+
+    document.getElementById("result")
+        .innerHTML =
+        messages[
+            Math.floor(
+                Math.random()*messages.length
+            )
+        ];
+}
+
+function check(){
+
+    const userAnswer =
+        normalize(
+            document.getElementById("answer").value
+        );
+
+    const correctAnswer =
+        normalize(currentTask.a);
+
+    const result =
+        document.getElementById("result");
+
+    if(userAnswer === correctAnswer){
+
+        score++;
+        streak++;
+
+        result.className = "correct";
+        result.innerHTML = "✅ Richtig";
+
+        if(streak % 10 === 0){
+
+            celebrate();
+        }
+
+    }else{
+
+        streak = 0;
+
+        result.className = "wrong";
+        result.innerHTML =
+            "❌ Falsch<br><br>Richtig wäre:<br><b>" +
+            currentTask.a +
+            "</b>";
+    }
+
+    document.getElementById("score")
+        .innerText = score;
+
+    document.getElementById("streak")
+        .innerText = streak;
+
+    setTimeout(nextTask,1200);
+}
+
+document.addEventListener(
+    "keydown",
+    function(e){
+
+        if(
+            e.key === "Enter" &&
+            document.getElementById("game").style.display !== "none"
+        ){
+            check();
+        }
+    }
+);
 
 </script>
+
+</body>
+</html>
