@@ -2,17 +2,41 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Imperativ Multiplayer</title>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <style>
-body { font-family: Arial; text-align:center; margin:20px; }
-.box { max-width:600px; margin:auto; }
-input, button { padding:10px; margin:5px; font-size:16px; }
-#sentence { font-size:22px; margin:20px; }
-#board { margin-top:20px; text-align:left; }
+body{
+  font-family: Arial;
+  text-align:center;
+  margin:20px;
+}
+
+.box{
+  max-width:650px;
+  margin:auto;
+}
+
+input, button{
+  padding:10px;
+  margin:5px;
+  font-size:16px;
+}
+
+#sentence{
+  font-size:22px;
+  margin:20px;
+}
+
+#board{
+  margin-top:20px;
+  text-align:left;
+  border-top:1px solid #ccc;
+  padding-top:10px;
+}
 </style>
 </head>
 
@@ -29,14 +53,14 @@ input, button { padding:10px; margin:5px; font-size:16px; }
 
 <div id="game" style="display:none;">
 
-<p id="sentence"></p>
+<p id="sentence">---</p>
 
 <input id="answer" placeholder="Satz im Imperativ">
 <button onclick="check()">Prüfen</button>
 
-<p>Punkte: <span id="score">0</span></p>
+<p>🏆 Punkte: <span id="score">0</span></p>
 
-<h3>🏆 Rangliste</h3>
+<h3>Rangliste</h3>
 <div id="board"></div>
 
 <p id="top"></p>
@@ -46,7 +70,8 @@ input, button { padding:10px; margin:5px; font-size:16px; }
 </div>
 
 <script>
-// 🔥 DEINE FIREBASE CONFIG
+
+// 🔥 FIREBASE CONFIG (DEINE DATEN)
 const firebaseConfig = {
   apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsXHJ2qDBvUXI",
   authDomain: "imperativ-trainer.firebaseapp.com",
@@ -63,16 +88,21 @@ const db = firebase.database();
 let name = "";
 let score = 0;
 let current = {};
+let lastIndex = -1;
 
+// 🧠 Aufgaben
 const tasks = [
   {q:"Du schreibst den Brief.", a:"Schreib den Brief!"},
   {q:"Ihr lest das Buch.", a:"Lest das Buch!"},
   {q:"Sie öffnen die Tür.", a:"Öffnen Sie die Tür!"},
   {q:"Du gehst nach Hause.", a:"Geh nach Hause!"},
   {q:"Ihr macht die Hausaufgaben.", a:"Macht die Hausaufgaben!"},
-  {q:"Sie schließen das Fenster.", a:"Schließen Sie das Fenster!"}
+  {q:"Sie schließen das Fenster.", a:"Schließen Sie das Fenster!"},
+  {q:"Du holst den Ball.", a:"Hol den Ball!"},
+  {q:"Ihr schreibt die Lösung.", a:"Schreibt die Lösung!"}
 ];
 
+// 👤 Start
 function start(){
   name = document.getElementById("name").value.trim();
   if(!name) return alert("Name eingeben!");
@@ -81,11 +111,22 @@ function start(){
   newTask();
 }
 
+// 🔄 neue Aufgabe (kein Doppel hintereinander)
 function newTask(){
-  current = tasks[Math.floor(Math.random()*tasks.length)];
+  let index;
+
+  do{
+    index = Math.floor(Math.random()*tasks.length);
+  } while(index === lastIndex && tasks.length > 1);
+
+  lastIndex = index;
+  current = tasks[index];
+
   document.getElementById("sentence").innerText = current.q;
+  document.getElementById("answer").value = "";
 }
 
+// ✅ Antwort prüfen
 function check(){
   let ans = document.getElementById("answer").value.trim().toLowerCase();
 
@@ -101,25 +142,30 @@ function check(){
   document.getElementById("answer").value = "";
 }
 
-// 🔥 LIVE RANGLISTE
-db.ref("scores").on("value", snap=>{
+// 🏆 LIVE RANGLISTE (SORTIERT)
+db.ref("scores").on("value", snap => {
   let data = snap.val() || {};
+
+  let list = Object.keys(data).map(n => {
+    return { name:n, score:data[n] };
+  });
+
+  list.sort((a,b) => b.score - a.score);
+
   let html = "";
 
-  let best = {name:"-", score:0};
-
-  for(let n in data){
-    html += `<div>${n}: ${data[n]}</div>`;
-
-    if(data[n] > best.score){
-      best = {name:n, score:data[n]};
-    }
-  }
+  list.forEach((p,i) => {
+    html += `<div>${i+1}. ${p.name}: ${p.score}</div>`;
+  });
 
   document.getElementById("board").innerHTML = html;
-  document.getElementById("top").innerText =
-    "🥇 Aktuell #1: " + best.name + " (" + best.score + ")";
+
+  if(list.length > 0){
+    document.getElementById("top").innerText =
+      "🥇 Aktuell #1: " + list[0].name + " (" + list[0].score + ")";
+  }
 });
+
 </script>
 
 </body>
