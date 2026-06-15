@@ -516,7 +516,19 @@ function check(){
 ====================== */
 
 function updateUI(){
+
     document.getElementById("streak").innerText = streak;
+
+    const xpElement = document.getElementById("xp");
+    if(xpElement){
+        xpElement.innerText = xp;
+    }
+
+    const levelElement = document.getElementById("level");
+    if(levelElement){
+        levelElement.innerText = level;
+    }
+}
 }
 
 /* ======================
