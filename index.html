@@ -471,7 +471,9 @@ function check(){
     if(user === correct){
 
     streak++;
-
+    
+    saveBest();
+        
     addXP(10);
 
     if(time >= 30){
@@ -538,19 +540,18 @@ function updateUI(){
 
 function saveBest(){
 
-    let data =
-        JSON.parse(localStorage.getItem("imperativ_best")) || {};
+    db.ref("scores/" + player)
+    .get()
+    .then(snapshot=>{
 
-    if(!data[player]){
-        data[player] = 0;
-    }
+        let best = snapshot.val() || 0;
 
-    // nur BESTE Serie speichern
-    if(streak > data[player]){
-        data[player] = streak;
-    }
+        if(streak > best){
 
-    localStorage.setItem("imperativ_best",JSON.stringify(data));
+            db.ref("scores/" + player)
+            .set(streak);
+        }
+    });
 }
 
 /* ======================
@@ -559,21 +560,44 @@ function saveBest(){
 
 function updateBoard(){
 
-    let data =
-        JSON.parse(localStorage.getItem("imperativ_best")) || {};
+    db.ref("scores").on("value",snapshot=>{
 
-    let sorted =
-        Object.entries(data)
-        .sort((a,b)=>b[1]-a[1]);
+        let data = snapshot.val() || {};
 
-    let html = "";
+        let sorted =
+            Object.entries(data)
+            .sort((a,b)=>b[1]-a[1]);
 
-    for(let [name,score] of sorted){
-        html += `<div>${name}: ${score} 🔥</div>`;
-    }
+        let html = "";
 
-    document.getElementById("board").innerHTML =
-        html || "Noch keine Spieler";
+        let place = 1;
+
+        for(let [name,score] of sorted){
+
+            let medal = "";
+
+            if(place===1) medal="🥇";
+            else if(place===2) medal="🥈";
+            else if(place===3) medal="🥉";
+
+            html += `
+            <div style="
+            padding:8px;
+            margin:5px;
+            background:#334155;
+            border-radius:10px;">
+            ${medal} #${place}
+            ${name}
+            - 🔥 ${score}
+            </div>
+            `;
+
+            place++;
+        }
+
+        document.getElementById("board").innerHTML =
+            html || "Noch keine Spieler";
+    });
 }
 
 /* ======================
