@@ -335,7 +335,30 @@ let level = 1;
 /* ======================
    START / LOGIN
 ====================== */
+function loadPlayerData(){
 
+    db.ref("players/" + player)
+    .get()
+    .then(snapshot=>{
+
+        let data = snapshot.val();
+
+        if(data){
+
+            xp = data.xp || 0;
+            level = data.level || 1;
+            streak = data.streak || 0;
+
+        }else{
+
+            xp = 0;
+            level = 1;
+            streak = 0;
+        }
+
+        updateUI();
+    });
+}
 function startGame(){
 
     player = document.getElementById("name").value.trim();
@@ -349,8 +372,11 @@ function startGame(){
     document.getElementById("game").style.display = "block";
 
     updateBoard();
-    startRound();
-    nextTask();
+
+loadPlayerData();
+
+startRound();
+nextTask();
 }
 
 /* ======================
@@ -406,6 +432,7 @@ function fail(){
         "⏰ Zeit vorbei!<br><b>"+current.a+"</b>";
 _
     updateUI();
+    savePlayerData();
     updateBoard();
 
     setTimeout(nextTask,1200);
@@ -510,6 +537,7 @@ function check(){
     }
 
     updateUI();
+    savePlayerData();
     updateBoard();
 
     setTimeout(nextTask,1200);
@@ -553,7 +581,14 @@ function saveBest(){
         }
     });
 }
+function savePlayerData(){
 
+    db.ref("players/" + player).set({
+        xp: xp,
+        level: level,
+        streak: streak
+    });
+}
 /* ======================
    RANGLISTE
 ====================== */
