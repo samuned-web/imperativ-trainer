@@ -498,7 +498,7 @@ function addXP(amount){
 ====================== */
 
 function nextTask(){
-let answered = false;
+
     if(index >= shuffled.length){
         startRound();
     }
@@ -511,6 +511,7 @@ let answered = false;
     document.getElementById("answer").focus();
 
     startTimer();
+    let answered = false;
 }
 
 /* ======================
