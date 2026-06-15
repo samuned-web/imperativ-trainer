@@ -7,6 +7,11 @@
 <title>Imperativ Trainer</title>
 
 <style>
+    @keyframes pulse{
+    0%{transform:scale(1);}
+    50%{transform:scale(1.2);}
+    100%{transform:scale(1);}
+}
 body{
     font-family:Arial,sans-serif;
     background:#0f172a;
@@ -79,8 +84,29 @@ button{
 <h2 id="sentence">...</h2>
 
 <div class="timer">⏱️ <span id="time">45</span>s</div>
-<h3>⭐ XP: <span id="xp">0</span></h3>
-<h3>🎖 Level: <span id="level">1</span></h3>
+<h3>🎖 Level <span id="level">1</span></h3>
+
+<div style="
+width:100%;
+max-width:500px;
+height:28px;
+background:#334155;
+border-radius:20px;
+margin:auto;
+overflow:hidden;
+">
+    <div id="xpBar" style="
+    width:0%;
+    height:100%;
+    background:linear-gradient(90deg,#00ff88,#00ccff);
+    transition:0.4s;
+    "></div>
+</div>
+
+<p>
+⭐ <span id="xp">0</span> /
+<span id="xpNeeded">100</span> XP
+</p>
 <input id="answer" placeholder="Imperativ">
 
 <br>
@@ -320,7 +346,8 @@ const tasks = [
 /* ======================
    VARIABLEN
 ====================== */
-
+let answered = false;
+let boardLoaded = false;
 let player = "";
 let current = null;
 let streak = 0;
@@ -430,7 +457,7 @@ function fail(){
 
     document.getElementById("result").innerHTML =
         "⏰ Zeit vorbei!<br><b>"+current.a+"</b>";
-_
+
     updateUI();
     savePlayerData();
     updateBoard();
@@ -442,14 +469,28 @@ function addXP(amount){
 
     xp += amount;
 
+    let leveledUp = false;
+
     while(xp >= level * 100){
 
         xp -= level * 100;
         level++;
 
-        document.getElementById("result").innerHTML =
-            "🎉 LEVEL " + level + "!";
+        leveledUp = true;
     }
+
+    if(leveledUp){
+
+        document.getElementById("result").innerHTML =
+        `<div style="
+        font-size:40px;
+        animation:pulse 1s infinite;
+        ">
+        🎉 LEVEL ${level}!
+        </div>`;
+    }
+
+    return leveledUp;
 }
 
 /* ======================
@@ -457,7 +498,7 @@ function addXP(amount){
 ====================== */
 
 function nextTask(){
-
+let answered = false;
     if(index >= shuffled.length){
         startRound();
     }
@@ -489,6 +530,9 @@ function norm(t){
 ====================== */
 
 function check(){
+    if(answered) return;
+
+    answered = true;
 
     clearInterval(timer);
 
@@ -524,8 +568,6 @@ function check(){
         document.getElementById("result").innerHTML =
             "✅ Richtig";
     }
-        document.getElementById("result").innerHTML =
-            "✅ Richtig";
 
     }else{
 
@@ -549,17 +591,24 @@ function check(){
 
 function updateUI(){
 
-    document.getElementById("streak").innerText = streak;
+    document.getElementById("streak").innerText =
+        streak;
 
-    const xpElement = document.getElementById("xp");
-    if(xpElement){
-        xpElement.innerText = xp;
-    }
+    document.getElementById("level").innerText =
+        level;
 
-    const levelElement = document.getElementById("level");
-    if(levelElement){
-        levelElement.innerText = level;
-    }
+    document.getElementById("xp").innerText =
+        xp;
+
+    let needed = level * 100;
+
+    document.getElementById("xpNeeded").innerText =
+        needed;
+
+    let percent = (xp / needed) * 100;
+
+    document.getElementById("xpBar").style.width =
+        percent + "%";
 }
 
 /* ======================
@@ -594,6 +643,9 @@ function savePlayerData(){
 ====================== */
 
 function updateBoard(){
+
+    if(boardLoaded) return;
+    boardLoaded = true;
 
     db.ref("scores").on("value",snapshot=>{
 
