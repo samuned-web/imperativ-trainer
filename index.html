@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -78,7 +79,8 @@ button{
 <h2 id="sentence">...</h2>
 
 <div class="timer">⏱️ <span id="time">45</span>s</div>
-
+<h3>⭐ XP: <span id="xp">0</span></h3>
+<h3>🎖 Level: <span id="level">1</span></h3>
 <input id="answer" placeholder="Imperativ">
 
 <br>
@@ -97,9 +99,21 @@ button{
 </div>
 
 </div>
-
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDJtpb9isQ7FLuvrkvdHsOXxHJ2qDBvUXI",
+  authDomain: "imperativ-trainer.firebaseapp.com",
+  databaseURL: "https://imperativ-trainer-default-rtdb.firebaseio.com",
+  projectId: "imperativ-trainer",
+  storageBucket: "imperativ-trainer.firebasestorage.app",
+  messagingSenderId: "1007314946383",
+  appId: "1:1007314946383:web:ff2d6a8891a68570e39d3a"
+};
 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 /* ======================
    AUFGABEN
 ====================== */
@@ -316,7 +330,8 @@ let index = 0;
 
 let time = 45;
 let timer = null;
-
+ let xp = 0;
+let level = 1;
 /* ======================
    START / LOGIN
 ====================== */
@@ -389,7 +404,19 @@ function fail(){
 
     document.getElementById("result").innerHTML =
         "⏰ Zeit vorbei!<br><b>"+current.a+"</b>";
+function addXP(amount){
 
+    xp += amount;
+
+    while(xp >= level * 100){
+
+        xp -= level * 100;
+        level++;
+
+        document.getElementById("result").innerHTML =
+            "🎉 LEVEL " + level + "!";
+    }
+}
     updateUI();
     updateBoard();
 
@@ -441,8 +468,31 @@ function check(){
 
     if(user === correct){
 
-        streak++;
+    streak++;
 
+    addXP(10);
+
+    if(time >= 30){
+        addXP(5);
+    }
+
+    if(streak % 10 === 0){
+
+        const effects = [
+            "🎉 Super!",
+            "🔥 Stark!",
+            "🏆 Klasse!",
+            "⭐ Perfekt!",
+            "🚀 Mega!"
+        ];
+
+        document.getElementById("result").innerHTML =
+            effects[Math.floor(Math.random()*effects.length)];
+    } else {
+
+        document.getElementById("result").innerHTML =
+            "✅ Richtig";
+    }
         document.getElementById("result").innerHTML =
             "✅ Richtig";
 
