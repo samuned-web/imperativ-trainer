@@ -404,6 +404,13 @@ function fail(){
 
     document.getElementById("result").innerHTML =
         "⏰ Zeit vorbei!<br><b>"+current.a+"</b>";
+_
+    updateUI();
+    updateBoard();
+
+    setTimeout(nextTask,1200);
+}
+
 function addXP(amount){
 
     xp += amount;
@@ -416,11 +423,6 @@ function addXP(amount){
         document.getElementById("result").innerHTML =
             "🎉 LEVEL " + level + "!";
     }
-}
-    updateUI();
-    updateBoard();
-
-    setTimeout(nextTask,1200);
 }
 
 /* ======================
@@ -528,7 +530,6 @@ function updateUI(){
     if(levelElement){
         levelElement.innerText = level;
     }
-}
 }
 
 /* ======================
